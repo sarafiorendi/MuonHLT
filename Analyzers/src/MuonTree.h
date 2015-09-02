@@ -79,6 +79,11 @@ public:
   Float_t hcalDep;
   Float_t trkDep;
 
+  Float_t ecalDep05;
+  Float_t hcalDep05;
+  Float_t ecalDep1;
+  Float_t hcalDep1;
+
   HLTMuonCand(){};
   virtual ~HLTMuonCand(){};
 
