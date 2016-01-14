@@ -27,6 +27,8 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
+#include "DataFormats/Scalers/interface/LumiScalers.h"
+#include "DataFormats/Luminosity/interface/LumiDetails.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
@@ -99,6 +101,8 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::InputTag offlineECalPFTag04_;
   edm::InputTag offlineHCalPFTag04_;
   
+  edm::InputTag lumiScalerTag_;
+  
   MuonEvent event_;
   std::map<std::string,TTree*> tree_;
   
@@ -126,7 +130,8 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
   offlineECalPFTag03_     (cfg.getUntrackedParameter<edm::InputTag>("offlineECalPFIso03")),
   offlineHCalPFTag03_     (cfg.getUntrackedParameter<edm::InputTag>("offlineHCalPFIso03")),
   offlineECalPFTag04_     (cfg.getUntrackedParameter<edm::InputTag>("offlineECalPFIso04")),
-  offlineHCalPFTag04_     (cfg.getUntrackedParameter<edm::InputTag>("offlineHCalPFIso04"))
+  offlineHCalPFTag04_     (cfg.getUntrackedParameter<edm::InputTag>("offlineHCalPFIso04")),
+  lumiScalerTag_          (cfg.getParameter<edm::InputTag>("lumiScalerTag"))
 {}
 
 void MuonNtuples::beginJob() {
@@ -186,6 +191,20 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
 	} 
 	else  
 	  edm::LogError("") << "PU collection not found !!!";
+  }
+
+  // Fill bx and inst lumi info
+  if (event.isRealData()) {
+    event_.bxId  = event.bunchCrossing();
+
+    if (lumiScalerTag_.label() != "none")
+	{
+	  edm::Handle<LumiScalersCollection> lumiScaler;
+	  event.getByLabel(lumiScalerTag_, lumiScaler);
+
+	  if (lumiScaler->begin() != lumiScaler->end())
+	    event_.instLumi = lumiScaler->begin()->instantLumi();
+	} 
   }
   
   // Fill MC GEN info

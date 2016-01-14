@@ -154,6 +154,9 @@ public:
 
   Float_t trueNI;   
   Float_t rho; 
+  
+  Float_t bxId;
+  Float_t instLumi; 
 
   std::vector <GenParticleCand> genParticles; 
   std::vector <MuonCand>        muons;         
