@@ -46,11 +46,11 @@ void readNtuples(){
   }
 
 
-  TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_7_4_15/src/MuonHLT/Analyzers/test/muonNtuple_run258158.root","READ");
+  TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_7_4_15/src/MuonHLT/Analyzers/test/muonNtuple_run258158_test.root","READ");
 //   TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/redo/CMSSW_7_4_8/src/HLTrigger/Configuration/test/ntuples/muonNtupleMC_DYJetsToLL.root","READ");
   std::cout << "input file: " << inputfile -> GetName() << std::endl;
 
-  TFile* outfile = TFile::Open(Form("efficiency_fullpath_onZMuMuSkim_run258158_%s_offlineIso0p15.root", hltname.c_str()),"RECREATE");
+  TFile* outfile = TFile::Open(Form("efficiency_fullpath_onZMuMuSkim_run258158_%s_offlineIso0p15_check.root", hltname.c_str()),"RECREATE");
   std::cout << "output file: " << outfile -> GetName() << std::endl;
   
   TTree *tree = (TTree*) inputfile -> Get("muonNtuples/muonTree");
@@ -126,7 +126,7 @@ void readNtuples(){
     unsigned int nhltmuons = ev->hltmuons.size();
 //     if (nhltmuons > 0) std::cout << "Number of hlt muons = " << nhltmuons << std::endl;
     
-    if (!ev-> hlt.find(hltname)) continue;
+    if (!ev-> hltTag.find(hltname)) continue;
     nvtx_event      -> Fill( ev -> nVtx   );
     
 
@@ -134,7 +134,7 @@ void readNtuples(){
       
       // select the tag muon        
       if (! selectTagMuon(ev -> muons.at(imu), tagiso))                   continue;
-      if (! matchMuon(ev -> muons.at(imu), ev -> hlt.objects, isofilter)) continue;
+      if (! matchMuon(ev -> muons.at(imu), ev -> hltTag.objects, isofilter)) continue;
       tagMuonPt -> Fill(ev -> muons.at(imu).pt);
       
       for (int jmu = 0; jmu < nmuons; jmu++){

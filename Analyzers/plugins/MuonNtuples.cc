@@ -61,15 +61,19 @@ class MuonNtuples : public edm::EDAnalyzer {
   void fillHlt(const edm::Handle<edm::TriggerResults> &, 
 	           const edm::Handle<trigger::TriggerEvent> &,
 	           const edm::TriggerNames &,
-	           const edm::Event &);
+	           const edm::Event &,
+	           bool 
+	          );
 
   void fillMuons(const edm::Handle<reco::MuonCollection> &,
 		         const reco::Vertex &, 
-		         const edm::Event   & );
+		         const edm::Event   & 
+		        );
 
   void fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
 		            const reco::Vertex &, 
-		            const edm::Event   & );
+		            const edm::Event   & 
+		           );
 
   void MonteCarloStudies(const edm::Event&);
   
@@ -83,6 +87,7 @@ class MuonNtuples : public edm::EDAnalyzer {
 
   // Trigger process
   std::string triggerProcess_;
+  std::string tagTriggerProcess_;
 
   // Input tags
   edm::InputTag l3candTag_;
@@ -116,6 +121,7 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
   offlinePVTag_           (cfg.getParameter<edm::InputTag>("offlineVtx")), 
   offlineMuonTag_         (cfg.getParameter<edm::InputTag>("offlineMuons")), 
   triggerProcess_         (cfg.getParameter<std::string>("triggerProcess")), 
+  tagTriggerProcess_      (cfg.getParameter<std::string>("tagTriggerProcess")), 
   l3candTag_              (cfg.getUntrackedParameter<edm::InputTag>("L3Candidates")),
   chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
   neutralDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("NeutralDeposit")), 
@@ -212,18 +218,31 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     MonteCarloStudies(event);
 
   
-  // Fill trigger information
+  // Fill trigger information for probe muon
   edm::Handle<edm::TriggerResults>   triggerResults;
   edm::Handle<trigger::TriggerEvent> triggerEvent;
-      
+
   if (event.getByLabel(edm::InputTag("TriggerResults"      , "", triggerProcess_), triggerResults) &&
 	  event.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", triggerProcess_), triggerEvent)) {
 	  
     edm::TriggerNames triggerNames_ = event.triggerNames(*triggerResults);
-	fillHlt(triggerResults, triggerEvent, triggerNames_, event);
+	fillHlt(triggerResults, triggerEvent, triggerNames_, event, false);
   }
   else 
-	edm::LogError("") << "Trigger collection not found !!!";
+	edm::LogError("") << "Trigger collection for probe muon not found !!!";
+
+  // Fill trigger information for probe muon
+  edm::Handle<edm::TriggerResults>   tagTriggerResults;
+  edm::Handle<trigger::TriggerEvent> tagTriggerEvent;
+      
+  if (event.getByLabel(edm::InputTag("TriggerResults"      , "", tagTriggerProcess_), tagTriggerResults) &&
+	  event.getByLabel(edm::InputTag("hltTriggerSummaryAOD", "", tagTriggerProcess_), tagTriggerEvent)) {
+	  
+    edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
+	fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
+  }
+  else 
+	edm::LogError("") << "Trigger collection for tag muon not found !!!";
 
 
   // Handle the offline muon collection and fill offline muons
@@ -272,6 +291,7 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
 	else {
 	  for (unsigned int im=0; im < n_moms; ++im){
 		theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
+		// if coming from a muon, go back one step ** to be improved **
 		if(n_moms == 1 && fabs(p.motherRef(0)->pdgId()) == muId){
 		  for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
 			theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
@@ -284,7 +304,6 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
 
 	event_.genParticles.push_back(theGen);
 
-// 	} // end for des
   }  // end for genParticles
 }
 
@@ -292,7 +311,8 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
 void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResults, 
 				          const edm::Handle<trigger::TriggerEvent> & triggerEvent  ,
 				          const edm::TriggerNames                  & triggerNames  ,
-				          const edm::Event                         & event         )
+				          const edm::Event                         & event         ,
+				          bool                                       isTag         )
 {    
    
   for (unsigned int itrig=0; itrig < triggerNames.size(); ++itrig) 
@@ -301,7 +321,8 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
     if (triggerResults->accept(itrig)) 
 	{
 	  std::string pathName = triggerNames.triggerName(itrig);
-	  event_.hlt.triggers.push_back(pathName);
+	  if (isTag) event_.hltTag.triggers.push_back(pathName);
+	  else       event_.hlt   .triggers.push_back(pathName);
 	}
   }
      
@@ -327,7 +348,8 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
 	  hltObj.eta = triggerObj.eta();
 	  hltObj.phi = triggerObj.phi();
 	  
-	  event_.hlt.objects.push_back(hltObj);
+	  if (isTag) 	  event_.hltTag.objects.push_back(hltObj);
+	  else       	  event_.hlt   .objects.push_back(hltObj);
 	  
 	}       
   }
@@ -335,7 +357,8 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
   // fill hlt rho information
   edm::Handle <double>  hltRhoCollection;
   if (event.getByLabel(rhoCorrectionTag_, hltRhoCollection) && hltRhoCollection.isValid())
-    event_.hlt.rho = *(hltRhoCollection.product());
+    if (isTag) 	  event_.hltTag.rho = *(hltRhoCollection.product());
+    else          event_.hlt   .rho = *(hltRhoCollection.product());
 
 }
 
@@ -532,11 +555,7 @@ void MuonNtuples::beginEvent()
 // 	  theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
 // 	}
 //   }
-// 
-// 
-// 
 // }
-
 
 
 // const reco::GenParticle* TauValidation::GetMother(const reco::GenParticle* tau){
@@ -548,27 +567,24 @@ void MuonNtuples::beginEvent()
 //    return tau;
 //  }
 //  
-//  
-//  
-//  
-//        unsigned int n_moms = p.numberOfMothers();
-//       if (n_moms == 0 ){
-//         theGen.pdgMother.push_back(0);
-//         theGen.pdgRealMother.push_back(0);
-//       }
-//       else {
-//         for (unsigned int im=0; im < n_moms; ++im){
-//           theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
-//           if(n_moms == 1 && p.motherRef(0)->pdgId() == muId){
-//             for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
-//               theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
-//             }
-//           }
-//           else
-//             theGen.pdgRealMother.push_back(0);
+
+//    unsigned int n_moms = p.numberOfMothers();
+//   if (n_moms == 0 ){
+//     theGen.pdgMother.push_back(0);
+//     theGen.pdgRealMother.push_back(0);
+//   }
+//   else {
+//     for (unsigned int im=0; im < n_moms; ++im){
+//       theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
+//       if(n_moms == 1 && p.motherRef(0)->pdgId() == muId){
+//         for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
+//           theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
 //         }
 //       }
-// 
+//       else
+//         theGen.pdgRealMother.push_back(0);
+//     }
+//   }
 
 
 // define this as a plug-in

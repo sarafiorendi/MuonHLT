@@ -162,6 +162,7 @@ public:
   std::vector <MuonCand>        muons;         
   std::vector <HLTMuonCand>     hltmuons;      
   HLTInfo                       hlt;           
+  HLTInfo                       hltTag;           
 
   MuonEvent(){};
   virtual ~MuonEvent(){};
