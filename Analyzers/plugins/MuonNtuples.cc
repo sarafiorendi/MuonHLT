@@ -220,7 +220,7 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   else
     edm::LogWarning("") << "Online muon collection not found !!!";
   
-//   endEvent();
+  // endEvent();
   tree_["muonTree"] -> Fill();
 }
 
@@ -229,33 +229,43 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
 {
   edm::Handle<reco::GenParticleCollection> genParticles;
   event.getByLabel("genParticles", genParticles);
-  int ZId   =    23;
   int muId  =    13;
 
   for ( size_t i=0; i< genParticles->size(); ++i) 
   { 
     const reco::GenParticle &p = (*genParticles)[i];
-  	if(fabs(p.pdgId()) != ZId ) 	continue; 
-
-    // return all daughters of Z 
-    if (p.numberOfDaughters()!= 2 ) continue;  
-    for ( size_t ides=0; ides < p.numberOfDaughters(); ++ides ) 
-    {
-  	  const reco::Candidate *des = p.daughter(ides);
-	  int dauId = des->pdgId();
-      if( fabs(dauId) != muId ) continue;
+  	// only save muons
+  	if(fabs(p.pdgId()) != muId ) 	continue; 
       
-      GenParticleCand theGen;
-      theGen.pdgId  = des -> pdgId();
-      theGen.pt     = des -> pt() ;
-      theGen.eta    = des -> eta();
-      theGen.phi    = des -> phi();
-      theGen.energy = des -> energy();
-      theGen.status = des -> status();
+	GenParticleCand theGen;
+	theGen.pdgId  = p.pdgId();
+	theGen.pt     = p.pt() ;
+	theGen.eta    = p.eta();
+	theGen.phi    = p.phi();
+	theGen.energy = p.energy();
+	theGen.status = p.status();
+	
+	unsigned int n_moms = p.numberOfMothers();
+	if (n_moms == 0 ){
+	  theGen.pdgMother.push_back(0);
+	  theGen.pdgRealMother.push_back(0);
+	}
+	else {
+	  for (unsigned int im=0; im < n_moms; ++im){
+		theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
+		if(n_moms == 1 && fabs(p.motherRef(0)->pdgId()) == muId){
+		  for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
+			theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
+		  }
+		}
+		else
+		  theGen.pdgRealMother.push_back(0);
+	  }
+	}
 
-      event_.genParticles.push_back(theGen);
+	event_.genParticles.push_back(theGen);
 
-	} // end for des
+// 	} // end for des
   }  // end for genParticles
 }
 
@@ -475,6 +485,8 @@ void MuonNtuples::beginEvent()
   event_.hlt.rho = -1;
 
   event_.genParticles.clear();
+//   event_.genParticles.pdgMother.clear();
+//   event_.genParticles.pdgRealMother.clear();
   event_.muons.clear();
   event_.hltmuons.clear();
   
@@ -491,6 +503,53 @@ void MuonNtuples::beginEvent()
   nGoodVtx = 0; 
 }
 
+//---------------------------------------------
+// unsigned int MuonNtuples::GetRealMomPdg( const reco::GenParticleRef & thep)
+// {
+// //   n_moms = thep.numberOfMothers();
+//   if(thep.motherRef(0)->pdgId() == muId){
+// 	for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
+// 	  if (thep.motherRef(0))
+// 	  theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
+// 	}
+//   }
+// 
+// 
+// 
+// }
+
+
+
+// const reco::GenParticle* TauValidation::GetMother(const reco::GenParticle* tau){
+//    for (unsigned int i=0;i<tau->numberOfMothers();i++) {
+//      const reco::GenParticle *mother=static_cast<const reco::GenParticle*>(tau->mother(i));
+//      if(mother->pdgId() == tau->pdgId()) return GetMother(mother);
+//      return mother;
+//    }
+//    return tau;
+//  }
+//  
+//  
+//  
+//  
+//        unsigned int n_moms = p.numberOfMothers();
+//       if (n_moms == 0 ){
+//         theGen.pdgMother.push_back(0);
+//         theGen.pdgRealMother.push_back(0);
+//       }
+//       else {
+//         for (unsigned int im=0; im < n_moms; ++im){
+//           theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
+//           if(n_moms == 1 && p.motherRef(0)->pdgId() == muId){
+//             for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
+//               theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
+//             }
+//           }
+//           else
+//             theGen.pdgRealMother.push_back(0);
+//         }
+//       }
+// 
 
 
 // define this as a plug-in

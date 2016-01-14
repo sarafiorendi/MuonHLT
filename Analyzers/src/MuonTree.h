@@ -16,6 +16,8 @@ public:
   Float_t pt; 
   Float_t eta; 
   Float_t phi; 
+  std::vector<Int_t>  pdgMother; 
+  std::vector<Int_t>  pdgRealMother; 
 
   GenParticleCand(){};
   virtual ~GenParticleCand(){};
