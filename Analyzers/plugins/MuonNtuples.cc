@@ -427,10 +427,10 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
   
   // fill hlt rho information
   edm::Handle <double>  hltRhoCollection;
-  if (event.getByToken(rhoCorrectionToken_, hltRhoCollection) && hltRhoCollection.isValid())
+  if (event.getByToken(rhoCorrectionToken_, hltRhoCollection) && hltRhoCollection.isValid()){
     if (isTag)    event_.hltTag.rho = *(hltRhoCollection.product());
     else          event_.hlt   .rho = *(hltRhoCollection.product());
-
+  }
 }
 
 
