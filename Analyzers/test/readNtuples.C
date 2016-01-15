@@ -133,7 +133,7 @@ void readNtuples(){
     for (int imu = 0; imu < nmuons; imu++){
       
       // select the tag muon        
-      if (! selectTagMuon(ev -> muons.at(imu), tagiso))                   continue;
+      if (! selectTagMuon(ev -> muons.at(imu), tagiso))                      continue;
       if (! matchMuon(ev -> muons.at(imu), ev -> hltTag.objects, isofilter)) continue;
       tagMuonPt -> Fill(ev -> muons.at(imu).pt);
       
@@ -152,6 +152,7 @@ void readNtuples(){
         if (!(offlineiso04 < offlineIsoCut)) continue;
 //         if (!(matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, L3filter))) continue;
 
+        // fill denumerator histograms
         muonPt_den    -> Fill( ev -> muons.at(jmu).pt );
         muonEta_den   -> Fill( ev -> muons.at(jmu).eta);
         muonPhi_den   -> Fill( ev -> muons.at(jmu).phi);
@@ -183,6 +184,7 @@ void readNtuples(){
         }
 
 
+        // match probe muon to the interesting filter and fill numerator histograms
         if (matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, isofilter)){
           muonPt_num    -> Fill( ev -> muons.at(jmu).pt);
           muonEta_num   -> Fill( ev -> muons.at(jmu).eta);

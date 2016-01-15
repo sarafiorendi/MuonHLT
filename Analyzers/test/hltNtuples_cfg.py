@@ -85,8 +85,12 @@ process.load('Configuration.Geometry.GeometryRecoDB_cff')
 process.muonNtuples =cms.EDAnalyzer("MuonNtuples",
                        offlineVtx               = cms.InputTag("offlinePrimaryVertices"),
                        offlineMuons             = cms.InputTag("muons"),
-                       triggerProcess           = cms.string("HLT"),
-                       tagTriggerProcess        = cms.string("HLT"),
+                       
+                       triggerResult            = cms.untracked.InputTag("TriggerResults::HLT"),
+                       triggerSummary           = cms.untracked.InputTag("hltTriggerSummaryAOD::HLT"),
+                       tagTriggerResult         = cms.untracked.InputTag("TriggerResults::HLT"),
+                       tagTriggerSummary        = cms.untracked.InputTag("hltTriggerSummaryAOD::HLT"),
+                       
                        L3Candidates             = cms.untracked.InputTag("hltL3MuonCandidates"), 
 					   NeutralDeposit           = cms.untracked.InputTag("hltMuonHcalPFClusterIsoForMuons"), 
 					   PhotonsDeposit           = cms.untracked.InputTag("hltMuonEcalPFClusterIsoForMuons"), 
@@ -95,15 +99,21 @@ process.muonNtuples =cms.EDAnalyzer("MuonNtuples",
 					   NeutralDeposit1          = cms.untracked.InputTag("hltMuonHcalPFClusterIsoForMuonsNoEffAreaVeto0p1"), 
 					   PhotonsDeposit1          = cms.untracked.InputTag("hltMuonEcalPFClusterIsoForMuonsNoEffAreaVeto0p1"), 
                        ChargedDeposit           = cms.untracked.InputTag("hltMuonTkRelIsolationCut0p09Map", "trkIsoDeposits", "HLT"), 
-				       RhoCorrectionOnline      = cms.untracked.InputTag("hltFixedGridRhoFastjetAllCaloForMuons"), 
-				       RhoCorrectionOffline     = cms.untracked.InputTag("fixedGridRhoFastjetAllCalo"), #to be checked
-                       BeamSpotTag              = cms.untracked.InputTag("offlineBeamSpot"),
+				       
+				       RhoCorrectionOnline      = cms.untracked.InputTag("hltFixedGridRhoFastjetAllCaloForMuons"), # for now, same for tag and probe muons
+				       RhoCorrectionOffline     = cms.untracked.InputTag("fixedGridRhoFastjetAllCalo"), 
+                       				       
 				       offlineECalPFIso03       = cms.untracked.InputTag("muonEcalPFClusterIsolationProducer03"), 
 				       offlineHCalPFIso03       = cms.untracked.InputTag("muonHcalPFClusterIsolationProducer03"), 
 				       offlineECalPFIso04       = cms.untracked.InputTag("muonEcalPFClusterIsolationProducer04"), 
 				       offlineHCalPFIso04       = cms.untracked.InputTag("muonHcalPFClusterIsolationProducer04"), 
-                       lumiScalerTag            = cms.InputTag("scalersRawToDigi")
+                       
+                       lumiScalerTag            = cms.untracked.InputTag("scalersRawToDigi"),
+                       puInfoTag                = cms.untracked.InputTag("addPileupInfo"),
+
+                       genParticlesTag          = cms.untracked.InputTag("genParticles"),
                        )   
+                       
 process.mypath  = cms.Path(process.muonNtuples)
 
 process.TFileService = cms.Service("TFileService",
