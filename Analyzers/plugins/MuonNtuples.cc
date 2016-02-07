@@ -72,7 +72,6 @@ class MuonNtuples : public edm::EDAnalyzer {
                 );
 
   void fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
-                    const reco::Vertex &, 
                     const edm::Event   & 
                    );
 
@@ -302,14 +301,14 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   edm::Handle<edm::TriggerResults>   tagTriggerResults;
   edm::Handle<trigger::TriggerEvent> tagTriggerEvent;
       
-  if (event.getByToken(tagTriggerResultToken_, tagTriggerResults) &&
-      event.getByToken(tagTriggerSummToken_  , tagTriggerEvent)) {
-      
-    edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
-    fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
-  }
-  else 
-    edm::LogError("") << "Trigger collection for tag muon not found !!!";
+//   if (event.getByToken(tagTriggerResultToken_, tagTriggerResults) &&
+//       event.getByToken(tagTriggerSummToken_  , tagTriggerEvent)) {
+//       
+//     edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
+//     fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
+//   }
+//   else 
+//     edm::LogError("") << "Trigger collection for tag muon not found !!!";
 
 
   // Handle the offline muon collection and fill offline muons
@@ -321,7 +320,7 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   // Handle the online muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
   if (event.getByToken(l3candToken_, l3cands))
-    fillHltMuons(l3cands, pv, event);
+    fillHltMuons(l3cands, event);
   else
     edm::LogWarning("") << "Online muon collection not found !!!";
   
@@ -515,7 +514,6 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
 
 // ---------------------------------------------------------------------
 void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> & l3cands ,
-                               const reco::Vertex                                      & pv      ,
                                const edm::Event                                        & event )
 {
 
@@ -541,7 +539,6 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
 
     reco::TrackRef trkmu = candref->track();
     theL3Mu.trkpt   = trkmu -> pt();
-
 
     if (event.getByToken(chargedDepToken_, trkDepMap)     &&
         event.getByToken(neutralDepToken_, neutralDepMap) &&
