@@ -139,6 +139,7 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::InputTag genTag_;
   edm::EDGetTokenT<reco::GenParticleCollection> genToken_;
 
+  bool doOffline_;
 
   MuonEvent event_;
   std::map<std::string,TTree*> tree_;
@@ -202,7 +203,9 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
     puToken_                (consumes<std::vector< PileupSummaryInfo>>(puTag_)), 
 
   genTag_                 (cfg.getUntrackedParameter<edm::InputTag>("genParticlesTag")),
-    genToken_               (consumes<reco::GenParticleCollection>(genTag_)) 
+    genToken_               (consumes<reco::GenParticleCollection>(genTag_)), 
+
+  doOffline_                 (cfg.getUntrackedParameter<bool>("doOffline"))
 {
 }
 
@@ -231,21 +234,28 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
 
 
   // Fill vertex info
-  edm::Handle<reco::VertexCollection> vertices; 
-  event.getByToken(offlinePVToken_, vertices);
-  for(reco::VertexCollection::const_iterator it = vertices->begin(); it != vertices->end(); ++it) {
-    if( !it->isValid())  continue;
-    nGoodVtx++;
+  if (doOffline_){
+    edm::Handle<reco::VertexCollection> vertices; 
+    event.getByToken(offlinePVToken_, vertices);
+    for(reco::VertexCollection::const_iterator it = vertices->begin(); it != vertices->end(); ++it) {
+      if( !it->isValid())  continue;
+      nGoodVtx++;
+    }
+    event_.nVtx = nGoodVtx;
+    const reco::Vertex           & pv      = vertices->at(0);
+
+
+    // Fill offline rho info
+    edm::Handle <double>  rhoCollectionOffline;
+    event.getByToken(rhoCorrectionOfflineToken_, rhoCollectionOffline);
+    if (rhoCollectionOffline.isValid()) event_.rho     = *(rhoCollectionOffline.product());
+
+  // Handle the offline muon collection and fill offline muons
+    edm::Handle<std::vector<reco::Muon> > muons;
+    event.getByToken(offlineMuonToken_, muons);
+    fillMuons(muons, pv, event);
+
   }
-
-  event_.nVtx = nGoodVtx;
-  const reco::Vertex           & pv      = vertices->at(0);
-
-
-  // Fill offline rho info
-  edm::Handle <double>  rhoCollectionOffline;
-  event.getByToken(rhoCorrectionOfflineToken_, rhoCollectionOffline);
-  if (rhoCollectionOffline.isValid()) event_.rho     = *(rhoCollectionOffline.product());
 
 
   // Fill PU info
@@ -280,8 +290,8 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   }
   
   // Fill MC GEN info
-  if (!event.isRealData()) 
-    MonteCarloStudies(event);
+//   if (!event.isRealData()) 
+//     MonteCarloStudies(event);
 
   
   // Fill trigger information for probe muon
@@ -310,11 +320,6 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
 //   else 
 //     edm::LogError("") << "Trigger collection for tag muon not found !!!";
 
-
-  // Handle the offline muon collection and fill offline muons
-  edm::Handle<std::vector<reco::Muon> > muons;
-  event.getByToken(offlineMuonToken_, muons);
-  fillMuons(muons, pv, event);
 
 
   // Handle the online muon collection and fill online muons
