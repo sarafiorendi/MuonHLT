@@ -256,18 +256,18 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     fillMuons(muons, pv, event);
 
   // Fill bx and inst lumi info
-	if (event.isRealData()) {
-	  event_.bxId  = event.bunchCrossing();
+    if (event.isRealData()) {
+      event_.bxId  = event.bunchCrossing();
 
-	  if (lumiScalerTag_.label() != "none")
-	  {
-		edm::Handle<LumiScalersCollection> lumiScaler;
-		event.getByToken(lumiScalerToken_, lumiScaler);
+      if (lumiScalerTag_.label() != "none")
+      {
+        edm::Handle<LumiScalersCollection> lumiScaler;
+        event.getByToken(lumiScalerToken_, lumiScaler);
 
-		if (lumiScaler->begin() != lumiScaler->end())
-		  event_.instLumi = lumiScaler->begin()->instantLumi();
-	  } 
-	}
+        if (lumiScaler->begin() != lumiScaler->end())
+          event_.instLumi = lumiScaler->begin()->instantLumi();
+      } 
+    }
   }
 
 
