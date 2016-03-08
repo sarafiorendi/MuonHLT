@@ -255,6 +255,19 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     event.getByToken(offlineMuonToken_, muons);
     fillMuons(muons, pv, event);
 
+  // Fill bx and inst lumi info
+	if (event.isRealData()) {
+	  event_.bxId  = event.bunchCrossing();
+
+	  if (lumiScalerTag_.label() != "none")
+	  {
+		edm::Handle<LumiScalersCollection> lumiScaler;
+		event.getByToken(lumiScalerToken_, lumiScaler);
+
+		if (lumiScaler->begin() != lumiScaler->end())
+		  event_.instLumi = lumiScaler->begin()->instantLumi();
+	  } 
+	}
   }
 
 
@@ -275,19 +288,6 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
       edm::LogError("") << "PU collection not found !!!";
   }
 
-  // Fill bx and inst lumi info
-  if (event.isRealData()) {
-    event_.bxId  = event.bunchCrossing();
-
-    if (lumiScalerTag_.label() != "none")
-    {
-      edm::Handle<LumiScalersCollection> lumiScaler;
-      event.getByToken(lumiScalerToken_, lumiScaler);
-
-      if (lumiScaler->begin() != lumiScaler->end())
-        event_.instLumi = lumiScaler->begin()->instantLumi();
-    } 
-  }
   
   // Fill MC GEN info
 //   if (!event.isRealData()) 
