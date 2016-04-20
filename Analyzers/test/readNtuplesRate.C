@@ -16,8 +16,8 @@
 #include "TLorentzVector.h"
 
 
-bool         matchMuon      (HLTMuonCand, std::vector<HLTObjCand>, std::string);
-void dorate (TFile*, TFile*);
+bool  matchMuon  (HLTMuonCand, std::vector<HLTObjCand>, std::string);
+void  dorate     (TFile*, TFile*);
 
 // old wp
 // EB 0.11 EE 0.08 HB 0.21 HE 0.22 TRK 0.09
@@ -25,71 +25,79 @@ void dorate (TFile*, TFile*);
 // EB 0.08 EE 0.06 HB 0.13 HE 0.13 TRK 0.08
 
 // define pt threshold
-float cut_pt  = 28; 
+float cut_pt  = 24; 
 // define effective areas
-// 2015 menu
-// float a_ecal_barrel   = 0.153;
-// float a_hcal_barrel   = 0.060;
-// float a_ecal_endcap   = 0.072;
-// float a_hcal_endcap   = 0.107;
-// 2016 menu
-float a_ecal_barrel   = 0.153;
-float a_hcal_barrel   = 0.074;
-float a_ecal_endcap   = 0.071;
-float a_hcal_endcap   = 0.100;
+// 2016 menu - ECal Tune
+float a_ecal_barrel   = 0.135;   
+float a_ecal_endcap   = 0.080;
+float a_hcal_barrel   = 0.110;
+float a_hcal_endcap   = 0.163;
 
 // define isolation thresholds
-float cut_ecal_barrel = 0.11 ;
-float cut_hcal_barrel = 0.13 ;
-float cut_ecal_endcap = 0.08 ; 
-float cut_hcal_endcap = 0.13 ; 
-float cut_trk         = 0.08 ;
+float cut_ecal_barrel = 0;
+float cut_hcal_barrel = 0;
+float cut_ecal_endcap = 0;
+float cut_hcal_endcap = 0;
+float cut_trk         = 0;
 
+// ********************************************************
+int   which = 0; // 0 = 2015, 1 = loose 2016
+// ********************************************************
 
 
 void readNtuplesRate(){
 
-  std::string thestr = "_pt28_newhcal_oldecal";
+  if (which == 0){
+	cut_ecal_barrel = 0.11    ;
+	cut_hcal_barrel = 0.21    ;
+	cut_ecal_endcap = 0.08    ;
+	cut_hcal_endcap = 0.22    ;
+	cut_trk         = 0.09    ;
+  }  
+  else if (which == 1){
+	cut_ecal_barrel = 0.08   ;
+	cut_hcal_barrel = 0.13   ;
+	cut_ecal_endcap = 0.06   ;
+	cut_hcal_endcap = 0.14   ;
+	cut_trk         = 0.08   ;
+  }  
 
-//   TFile* inputfile0 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple.root","READ");
-//   TFile* outfile0 = TFile::Open("rate_try.root","RECREATE");
-//   dorate(inputfile0, outfile0);
+  std::string thestr = "_pu30_pt24_wptest";
+
   TFile* inputfile0 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple_QCD20to30.root","READ");
-  TFile* outfile0 = TFile::Open(Form("rates/rate_QCD20to30%s.root", thestr.c_str()),"RECREATE");
+  TFile* outfile0 = TFile::Open(Form("rates/abs_rate_QCD20to30%s.root", thestr.c_str()),"RECREATE");
   dorate(inputfile0, outfile0);
   
   TFile* inputfile1 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple_QCD30to50.root","READ");
-  TFile* outfile1 = TFile::Open(Form("rates/rate_QCD30to50%s.root", thestr.c_str()),"RECREATE");
+  TFile* outfile1 = TFile::Open(Form("rates/abs_rate_QCD30to50%s.root", thestr.c_str()),"RECREATE");
   dorate(inputfile1, outfile1);
 
   TFile* inputfile2 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple_QCD50to80.root","READ");
-  TFile* outfile2 = TFile::Open(Form("rates/rate_QCD50to80%s.root", thestr.c_str()),"RECREATE");
+  TFile* outfile2 = TFile::Open(Form("rates/abs_rate_QCD50to80%s.root", thestr.c_str()),"RECREATE");
   dorate(inputfile2, outfile2);
 
   TFile* inputfile3 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple_QCD80to120.root","READ");
-  TFile* outfile3 = TFile::Open(Form("rates/rate_QCD80to120%s.root", thestr.c_str()),"RECREATE");
+  TFile* outfile3 = TFile::Open(Form("rates/abs_rate_QCD80to120%s.root", thestr.c_str()),"RECREATE");
   dorate(inputfile3, outfile3);
 
   TFile* inputfile4 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple_WToMuNu.root","READ");
-  TFile* outfile4 = TFile::Open(Form("rates/rate_WMuNu%s.root", thestr.c_str()),"RECREATE");
+  TFile* outfile4 = TFile::Open(Form("rates/abs_rate_WMuNu%s.root", thestr.c_str()),"RECREATE");
   dorate(inputfile4, outfile4);
 
   TFile* inputfile5 = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/76/CMSSW_7_6_3/src/HLTrigger/Configuration/test/muonNtuple_DYToLL.root","READ");
-  TFile* outfile5 = TFile::Open(Form("rates/rate_DYLL%s.root", thestr.c_str()),"RECREATE");
+  TFile* outfile5 = TFile::Open(Form("rates/abs_rate_DYLL%s.root", thestr.c_str()),"RECREATE");
   dorate(inputfile5, outfile5);
   
   return;
-// 
-//   TChain *tree = new TChain("muonRateTree","muonRateTree");
-//   tree -> Add("root://eoscms//eos/cms/store/group/phys_muon/fiorendi/13TeV/2015C/SingleMuon/crab_muonNtuples_run254790_onlyMu_IsoMu_savetags/150914_095055/0000/muonNtupleRate_onData25ns_run254790_1.root/ntupleproducer/muonRateTree");
 
 }
 
+
 void dorate( TFile* inputfile,  TFile* outfile){
+
   std::cout << "output file: " << outfile -> GetName() << std::endl;
   
   TTree *tree = (TTree*) inputfile -> Get("muonNtuples/muonTree");
-//   TTree *tree = (TTree*) inputfile -> Get("muonNtuples/muonTree");
   if (!tree) {
     std::cout << " *** tree not found *** " << std::endl;
     return;
@@ -119,7 +127,7 @@ void dorate( TFile* inputfile,  TFile* outfile){
   TH1F* trkPt       = new TH1F("trkPt"        ,"trkPt"         ,   500,  0, 100);
   TH1F* rho         = new TH1F("rho"          ,"rho"           ,   500,  0, 100);
 
-  const int nhist_iso = 1;
+  const int nhist_iso = 50;
   TH1F *h_ecal_iso_barrel    [nhist_iso];
   TH1F *h_hcal_iso_barrel    [nhist_iso];
   TH1F *h_trk_iso_barrel     [nhist_iso];
@@ -182,12 +190,8 @@ void dorate( TFile* inputfile,  TFile* outfile){
       passTrkIso_e     [ii] = false;  
     }    
 
-//     for (isara = 0; isara <  ev -> hltTag.triggers.size(); isara++ ){  
-//       std::cout << ev -> hltTag.triggers.at(isara) << std::endl;
-//     }
-    
 //     if (!ev-> hlt.find("HLT_Mu20_v2")) continue;
-//     if ( ev -> trueNI < 28 || ev -> trueNI > 32 ) continue;
+    if ( ev -> trueNI < 28 || ev -> trueNI > 32 ) continue;
     count++;
     
     passref = false;
@@ -206,15 +210,14 @@ void dorate( TFile* inputfile,  TFile* outfile){
         passref = true;
       }
 
-//       if (theL3.pt == -1000)  {std::cout << "no L3 found" << std::endl; continue;}
-//       if (! (theL3.pt > cut_pt) )  continue;
+      if (! (theL3.pt > cut_pt) )  continue;
 	  nvtx_event      -> Fill( 3         );
 
       if (fabs(theL3.eta) < 1.479){
 		a_ecal   = a_ecal_barrel;
 		a_hcal   = a_hcal_barrel;
-		cut_hcal = cut_ecal_barrel;
-		cut_ecal = cut_hcal_barrel;
+		cut_ecal = cut_ecal_barrel;
+		cut_hcal = cut_hcal_barrel;
       }
       else{
 		a_ecal   = a_ecal_endcap;
@@ -250,22 +253,16 @@ void dorate( TFile* inputfile,  TFile* outfile){
       }
 
 
-//       if (theL3.ecalDep == -9999) continue;
       ecalDep -> Fill(theL3.ecalDep05);
       hcalDep -> Fill(theL3.hcalDep1 );
       trkPt   -> Fill(theL3.trkpt    );
       rho     -> Fill(ev -> hlt.rho  );
 
-// 	  std::cout  << "event: " << ev->eventNumber 
-// 				 << "     eta: "       << theL3.eta 
-// 				 << "     value: "     << hltEcalDep
-// 				 << "     rel value: " << hltEcalIso << std::endl; 
-// 	  std::cout << std::endl; 
-      if (hltEcalIso <= cut_ecal && hltHcalIso < cut_hcal && hltTrkIso < cut_trk && passwp==false && theL3.pt > cut_pt) {
+      if (hltEcalIso <= cut_ecal && hltHcalIso < cut_hcal && hltTrkIso < cut_trk && passwp==false && theL3.pt > cut_pt ) {
         wp_passing -> Fill(3);
 	    passwp = true;
 	  }
-/*	  for (int ih=0; ih < nhist_iso; ih++) {
+	  for (int ih=0; ih < nhist_iso; ih++) {
 		if (isBarrel){
 		  if (hltEcalIso < ih*0.01 && passEcalIso_b[ih]==false ) {
 			h_ecal_iso_barrel[ih] -> Fill(3);
@@ -295,7 +292,7 @@ void dorate( TFile* inputfile,  TFile* outfile){
 		  }
 		}
 	  }
-*/   
+   
     }
 
 
@@ -304,7 +301,6 @@ void dorate( TFile* inputfile,  TFile* outfile){
   }
   std::cout << "events in PU range: " << count << std::endl;
   
-
 
 
   outfile            -> cd();
