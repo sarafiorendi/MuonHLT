@@ -290,8 +290,8 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
 
   
   // Fill MC GEN info
-//   if (!event.isRealData()) 
-//     MonteCarloStudies(event);
+  if (!event.isRealData()) 
+    MonteCarloStudies(event);
 
   
   // Fill trigger information for probe muon
@@ -625,47 +625,6 @@ void MuonNtuples::beginEvent()
   
   nGoodVtx = 0; 
 }
-
-//---------------------------------------------
-// unsigned int MuonNtuples::GetRealMomPdg( const reco::GenParticleRef & thep)
-// {
-// //   n_moms = thep.numberOfMothers();
-//   if(thep.motherRef(0)->pdgId() == muId){
-//  for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
-//    if (thep.motherRef(0))
-//    theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
-//  }
-//   }
-// }
-
-
-// const reco::GenParticle* TauValidation::GetMother(const reco::GenParticle* tau){
-//    for (unsigned int i=0;i<tau->numberOfMothers();i++) {
-//      const reco::GenParticle *mother=static_cast<const reco::GenParticle*>(tau->mother(i));
-//      if(mother->pdgId() == tau->pdgId()) return GetMother(mother);
-//      return mother;
-//    }
-//    return tau;
-//  }
-//  
-
-//    unsigned int n_moms = p.numberOfMothers();
-//   if (n_moms == 0 ){
-//     theGen.pdgMother.push_back(0);
-//     theGen.pdgRealMother.push_back(0);
-//   }
-//   else {
-//     for (unsigned int im=0; im < n_moms; ++im){
-//       theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
-//       if(n_moms == 1 && p.motherRef(0)->pdgId() == muId){
-//         for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
-//           theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
-//         }
-//       }
-//       else
-//         theGen.pdgRealMother.push_back(0);
-//     }
-//   }
 
 
 // define this as a plug-in
