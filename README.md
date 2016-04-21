@@ -8,8 +8,7 @@ cd MyTools
 git clone git@github.com:sarafiorendi/MuonHLT.git  
 
 this gist customize the hlt configuration to run the ntuplizer 
-https://gist.github.com/sarafiorendi/2e2de2da6ecbe61a218f9c203644ada2
-
+https://gist.github.com/sarafiorendi/02b4a43c28766ec7beddabe3f5ae036e
 
 what is in here:  
 plugins/MuonNtuples.cc → code to produce ntuples   
