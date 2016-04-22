@@ -161,6 +161,7 @@ public:
   std::vector <GenParticleCand> genParticles; 
   std::vector <MuonCand>        muons;         
   std::vector <HLTMuonCand>     hltmuons;      
+  std::vector <HLTMuonCand>     L2muons;      
   HLTInfo                       hlt;           
   HLTInfo                       hltTag;           
 

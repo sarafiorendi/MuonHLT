@@ -72,7 +72,8 @@ class MuonNtuples : public edm::EDAnalyzer {
                 );
 
   void fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
-                    const edm::Event   & 
+                    const edm::Event   &,
+                    bool isL3 
                    );
 
   void MonteCarloStudies(const edm::Event&);
@@ -100,6 +101,8 @@ class MuonNtuples : public edm::EDAnalyzer {
   // Input tags
   edm::InputTag l3candTag_;
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> l3candToken_; 
+  edm::InputTag l2candTag_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> l2candToken_; 
 
   edm::InputTag chargedDepTag_;
   edm::EDGetTokenT<reco::IsoDepositMap> chargedDepToken_;
@@ -168,6 +171,9 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
 
   l3candTag_              (cfg.getUntrackedParameter<edm::InputTag>("L3Candidates")),
     l3candToken_            (consumes<reco::RecoChargedCandidateCollection>(l3candTag_)),
+  l2candTag_              (cfg.getUntrackedParameter<edm::InputTag>("L2Candidates")),
+    l2candToken_            (consumes<reco::RecoChargedCandidateCollection>(l2candTag_)),
+
   chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
     chargedDepToken_        (consumes<reco::IsoDepositMap>(chargedDepTag_)), 
   neutralDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("NeutralDeposit")), 
@@ -290,8 +296,8 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
 
   
   // Fill MC GEN info
-//   if (!event.isRealData()) 
-//     MonteCarloStudies(event);
+  if (!event.isRealData()) 
+    MonteCarloStudies(event);
 
   
   // Fill trigger information for probe muon
@@ -325,9 +331,16 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   // Handle the online muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
   if (event.getByToken(l3candToken_, l3cands))
-    fillHltMuons(l3cands, event);
+    fillHltMuons(l3cands, event, true);
   else
     edm::LogWarning("") << "Online muon collection not found !!!";
+
+  // Handle the online muon collection and fill L2 muons
+  edm::Handle<reco::RecoChargedCandidateCollection> l2cands;
+  if (event.getByToken(l2candToken_, l2cands))
+    fillHltMuons(l2cands, event, false);
+  else
+    edm::LogWarning("") << "Online L2 muon collection not found !!!";
   
   // endEvent();
   tree_["muonTree"] -> Fill();
@@ -519,7 +532,9 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
 
 // ---------------------------------------------------------------------
 void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> & l3cands ,
-                               const edm::Event                                        & event )
+                               const edm::Event                                        & event   , 
+                               bool isL3
+                               )
 {
 
   edm::Handle<reco::IsoDepositMap> trkDepMap;
@@ -590,7 +605,8 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
       theL3Mu.ecalDep1  =  -9999 ;
     }
 
-    event_.hltmuons.push_back(theL3Mu);
+    if (isL3) event_.hltmuons.push_back(theL3Mu);
+    else      event_.L2muons .push_back(theL3Mu);
   }
 }
 
@@ -610,6 +626,7 @@ void MuonNtuples::beginEvent()
   event_.genParticles.clear();
   event_.muons.clear();
   event_.hltmuons.clear();
+  event_.L2muons.clear();
   
   for (unsigned int ix=0; ix<3; ++ix) {
     event_.primaryVertex[ix] = 0.;
@@ -625,47 +642,6 @@ void MuonNtuples::beginEvent()
   
   nGoodVtx = 0; 
 }
-
-//---------------------------------------------
-// unsigned int MuonNtuples::GetRealMomPdg( const reco::GenParticleRef & thep)
-// {
-// //   n_moms = thep.numberOfMothers();
-//   if(thep.motherRef(0)->pdgId() == muId){
-//  for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
-//    if (thep.motherRef(0))
-//    theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
-//  }
-//   }
-// }
-
-
-// const reco::GenParticle* TauValidation::GetMother(const reco::GenParticle* tau){
-//    for (unsigned int i=0;i<tau->numberOfMothers();i++) {
-//      const reco::GenParticle *mother=static_cast<const reco::GenParticle*>(tau->mother(i));
-//      if(mother->pdgId() == tau->pdgId()) return GetMother(mother);
-//      return mother;
-//    }
-//    return tau;
-//  }
-//  
-
-//    unsigned int n_moms = p.numberOfMothers();
-//   if (n_moms == 0 ){
-//     theGen.pdgMother.push_back(0);
-//     theGen.pdgRealMother.push_back(0);
-//   }
-//   else {
-//     for (unsigned int im=0; im < n_moms; ++im){
-//       theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
-//       if(n_moms == 1 && p.motherRef(0)->pdgId() == muId){
-//         for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
-//           theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
-//         }
-//       }
-//       else
-//         theGen.pdgRealMother.push_back(0);
-//     }
-//   }
 
 
 // define this as a plug-in
