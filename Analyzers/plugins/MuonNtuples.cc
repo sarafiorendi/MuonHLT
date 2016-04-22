@@ -65,7 +65,7 @@ class MuonNtuples : public edm::EDAnalyzer {
                const edm::Event &,
                bool 
               );
-
+  
   void fillMuons(const edm::Handle<reco::MuonCollection> &,
                  const reco::Vertex &, 
                  const edm::Event   & 
