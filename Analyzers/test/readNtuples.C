@@ -26,6 +26,10 @@ std::string isofilter_18  = "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3trkIsoFiltered0p
 std::string isofilter_o18 = "hltL3crIsoL1sMu16L1f0L2f10QL3f18QL3OldCaloIsotrkIsoFiltered0p09::HLT";
 std::string L3filter, isofilter;
 
+double pt_bins[12]  = { 20 ,  24 ,  27 ,   30,   35,   40,   45,   50,  60, 70 ,  90, 150 };
+double eta_bins[14] = {-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2,  0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4};
+double iso_bins[12] = { 0  , 0.02, 0.04, 0.06, 0.08,  0.1, 0.12, 0.16, 0.2, 0.3, 0.6, 1   };
+
 double offlineIsoCut = 0.15;
 
 void readNtuples(){
@@ -46,11 +50,10 @@ void readNtuples(){
   }
 
 
-  TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_7_4_15/src/MuonHLT/Analyzers/test/muonNtuple_run258158_test.root","READ");
-//   TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/redo/CMSSW_7_4_8/src/HLTrigger/Configuration/test/ntuples/muonNtupleMC_DYJetsToLL.root","READ");
+  TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_8_0_0/src/MuonHLT/Analyzers/test/muonNtuple_run258158.root","READ");
   std::cout << "input file: " << inputfile -> GetName() << std::endl;
 
-  TFile* outfile = TFile::Open(Form("efficiency_fullpath_onZMuMuSkim_run258158_%s_offlineIso0p15_check.root", hltname.c_str()),"RECREATE");
+  TFile* outfile = TFile::Open(Form("efficiency_fullpath_onZMuMuSkim_run258158_%s_offlineIso0p15.root", hltname.c_str()),"RECREATE");
   std::cout << "output file: " << outfile -> GetName() << std::endl;
   
   TTree *tree = (TTree*) inputfile -> Get("muonNtuples/muonTree");
@@ -58,58 +61,37 @@ void readNtuples(){
     std::cout << " *** tree not found *** " << std::endl;
     return;
   }
-
-  TH1F* dimuon_mass         = new TH1F("dimuon_mass"         ,"dimuon_mass"          , 1500,  0, 150);
-  TH1F* tagiso              = new TH1F("tagiso"              ,"tagiso"               ,  100,  0, 1  );
-  TH1F* tagMuonPt           = new TH1F("tagMuonPt"           ,"tagMuonPt"            ,  150,  0, 150);
-
-  TH1F* muonPt_den          = new TH1F("muonPt_den"          ,"muonPt_den"           ,  150,  0, 150);
-  TH1F* muonPt_num          = new TH1F("muonPt_num"          ,"muonPt_num"           ,  150,  0, 150);
-  TH1F* muonPt_barrel_den   = new TH1F("muonPt_barrel_den"   ,"muonPt_barrel_den"    ,  150,  0, 150);
-  TH1F* muonPt_barrel_num   = new TH1F("muonPt_barrel_num"   ,"muonPt_barrel_num"    ,  150,  0, 150);
-  TH1F* muonPt_endcap_den   = new TH1F("muonPt_endcap_den"   ,"muonPt_endcap_den"    ,  150,  0, 150);
-  TH1F* muonPt_endcap_num   = new TH1F("muonPt_endcap_num"   ,"muonPt_endcap_num"    ,  150,  0, 150);
-  TH1F* muonPt_eta0_den     = new TH1F("muonPt_eta0_den"     ,"muonPt_eta0_den"      ,  150,  0, 150);
-  TH1F* muonPt_eta0_num     = new TH1F("muonPt_eta0_num"     ,"muonPt_eta0_num"      ,  150,  0, 150);
-  TH1F* muonPt_eta1_den     = new TH1F("muonPt_eta1_den"     ,"muonPt_eta1_den"      ,  150,  0, 150);
-  TH1F* muonPt_eta1_num     = new TH1F("muonPt_eta1_num"     ,"muonPt_eta1_num"      ,  150,  0, 150);
-  TH1F* muonPt_eta2_den     = new TH1F("muonPt_eta2_den"     ,"muonPt_eta2_den"      ,  150,  0, 150);
-  TH1F* muonPt_eta2_num     = new TH1F("muonPt_eta2_num"     ,"muonPt_eta2_num"      ,  150,  0, 150);
+    
+  TH1F* dimuon_mass             = new TH1F("dimuon_mass"            ,"dimuon_mass"      , 1500,  0,  150 );
+  TH1F* tagiso                  = new TH1F("tagiso"                 ,"tagiso"           ,  100,  0,  1   );
+  TH1F* tagMuonPt               = new TH1F("tagMuonPt"              ,"tagMuonPt"        ,  150,  0,  150 );
+  TH1F* nvtx_event              = new TH1F("nvtx_event"             ,"nvtx_event"       ,   60,  0,   60 );
  
-  TH1F* muonEta_den         = new TH1F("muonEta_den"         ,"muonEta_den"          ,  600, -3,   3);
-  TH1F* muonEta_num         = new TH1F("muonEta_num"         ,"muonEta_num"          ,  600, -3,   3);
-
-  TH1F* muonPhi_den         = new TH1F("muonPhi_den"         ,"muonPhi_den"          ,   40, -3.2,   3.2);
-  TH1F* muonPhi_num         = new TH1F("muonPhi_num"         ,"muonPhi_num"          ,   40, -3.2,   3.2);
-
-  TH1F* nvtx_event          = new TH1F("nvtx_event"          ,"nvtx_event"           ,   60,  0,  60);
-  TH1F* nvtx_num            = new TH1F("nvtx_num"            ,"nvtx_num"             ,   60,  0,  60);
-  TH1F* nvtx_den            = new TH1F("nvtx_den"            ,"nvtx_den"             ,   60,  0,  60);
-  TH1F* nvtx_barrel_num     = new TH1F("nvtx_barrel_num"     ,"nvtx_barrel_num"      ,   60,  0,  60);
-  TH1F* nvtx_barrel_den     = new TH1F("nvtx_barrel_den"     ,"nvtx_barrel_den"      ,   60,  0,  60);
-  TH1F* nvtx_endcap_num     = new TH1F("nvtx_endcap_num"     ,"nvtx_endcap_num"      ,   60,  0,  60);
-  TH1F* nvtx_endcap_den     = new TH1F("nvtx_endcap_den"     ,"nvtx_endcap_den"      ,   60,  0,  60);
-  TH1F* nvtx_eta0_num       = new TH1F("nvtx_eta0_num"       ,"nvtx_eta0_num"        ,   60,  0,  60);
-  TH1F* nvtx_eta0_den       = new TH1F("nvtx_eta0_den"       ,"nvtx_eta0_den"        ,   60,  0,  60);
-  TH1F* nvtx_eta1_num       = new TH1F("nvtx_eta1_num"       ,"nvtx_eta1_num"        ,   60,  0,  60);
-  TH1F* nvtx_eta1_den       = new TH1F("nvtx_eta1_den"       ,"nvtx_eta1_den"        ,   60,  0,  60);
-  TH1F* nvtx_eta2_num       = new TH1F("nvtx_eta2_num"       ,"nvtx_eta2_num"        ,   60,  0,  60);
-  TH1F* nvtx_eta2_den       = new TH1F("nvtx_eta2_den"       ,"nvtx_eta2_den"        ,   60,  0,  60);
-
-  TH1F* muonIso_den         = new TH1F("muonIso_den"         ,"muonIso_den"          ,  100,  0,   1);
-  TH1F* muonIso_num         = new TH1F("muonIso_num"         ,"muonIso_num"          ,  100,  0,   1);
-  TH1F* muonIso_barrel_den  = new TH1F("muonIso_barrel_den"  ,"muonIso_barrel_den"   ,  100,  0,   1);
-  TH1F* muonIso_barrel_num  = new TH1F("muonIso_barrel_num"  ,"muonIso_barrel_num"   ,  100,  0,   1);
-  TH1F* muonIso_endcap_den  = new TH1F("muonIso_endcap_den"  ,"muonIso_endcap_den"   ,  100,  0,   1);
-  TH1F* muonIso_endcap_num  = new TH1F("muonIso_endcap_num"  ,"muonIso_endcap_num"   ,  100,  0,   1);
-  TH1F* muonIso04_den       = new TH1F("muonIso04_den"       ,"muonIso04_den"        ,  100,  0,   1);
-  TH1F* muonIso04_num       = new TH1F("muonIso04_num"       ,"muonIso04_num"        ,  100,  0,   1);
+  TEfficiency* muonPt           = new TEfficiency("muonPt"          ,"muonPt"           ,   11,  pt_bins );
+  TEfficiency* muonPt_barrel    = new TEfficiency("muonPt_barrel"   ,"muonPt_barrel"    ,   11,  pt_bins );
+  TEfficiency* muonPt_endcap    = new TEfficiency("muonPt_endcap"   ,"muonPt_endcap"    ,   11,  pt_bins );
+  TEfficiency* muonPt_eta0      = new TEfficiency("muonPt_eta0"     ,"muonPt_eta0"      ,   11,  pt_bins );
+  TEfficiency* muonPt_eta1      = new TEfficiency("muonPt_eta1"     ,"muonPt_eta1"      ,   11,  pt_bins );
+  TEfficiency* muonPt_eta2      = new TEfficiency("muonPt_eta2"     ,"muonPt_eta2"      ,   11,  pt_bins );
   
-  double offlineiso   = 100;
+  TEfficiency* muonEta          = new TEfficiency("muonEta"         ,"muonEta"          ,   13, eta_bins );
+  TEfficiency* muonPhi          = new TEfficiency("muonPhi"         ,"muonPhi"          ,   40, -3.2, 3.2);
+ 
+  TEfficiency* nvtx             = new TEfficiency("nvtx"            ,"nvtx"             ,   60,    0,  60);
+  TEfficiency* nvtx_barrel      = new TEfficiency("nvtx_barrel"     ,"nvtx_barrel"      ,   60,    0,  60);
+  TEfficiency* nvtx_endcap      = new TEfficiency("nvtx_endcap"     ,"nvtx_endcap"      ,   60,    0,  60);
+  TEfficiency* nvtx_eta0        = new TEfficiency("nvtx_eta0"       ,"nvtx_eta0"        ,   60,    0,  60);
+  TEfficiency* nvtx_eta1        = new TEfficiency("nvtx_eta1"       ,"nvtx_eta1"        ,   60,    0,  60);
+  TEfficiency* nvtx_eta2        = new TEfficiency("nvtx_eta2"       ,"nvtx_eta2"        ,   60,    0,  60);
+   
+  TEfficiency* muonIso          = new TEfficiency("muonIso"         ,"muonIso"          ,  100,    0,   1);
+  TEfficiency* muonIso_barrel   = new TEfficiency("muonIso_barrel"  ,"muonIso_barrel"   ,  100,    0,   1);
+  TEfficiency* muonIso_endcap   = new TEfficiency("muonIso_endcap"  ,"muonIso_endcap"   ,  100,    0,   1);
+  
   double offlineiso04 = 100;
 
-  MuonEvent* ev = new MuonEvent();
-  TBranch* evBranch = tree->GetBranch("event");
+  MuonEvent* ev      = new MuonEvent();
+  TBranch*  evBranch = tree->GetBranch("event");
   evBranch -> SetAddress(&ev);
 
   int nentries = tree->GetEntriesFast();
@@ -126,7 +108,7 @@ void readNtuples(){
     unsigned int nhltmuons = ev->hltmuons.size();
 //     if (nhltmuons > 0) std::cout << "Number of hlt muons = " << nhltmuons << std::endl;
     
-    if (!ev-> hltTag.find(hltname)) continue;
+    if (!ev-> hlt.find(hltname)) continue;
     nvtx_event      -> Fill( ev -> nVtx   );
     
 
@@ -134,144 +116,87 @@ void readNtuples(){
       
       // select the tag muon        
       if (! selectTagMuon(ev -> muons.at(imu), tagiso))                      continue;
-      if (! matchMuon(ev -> muons.at(imu), ev -> hltTag.objects, isofilter)) continue;
+      if (! matchMuon(ev -> muons.at(imu), ev -> hlt.objects, isofilter))    continue;
       tagMuonPt -> Fill(ev -> muons.at(imu).pt);
       
       for (int jmu = 0; jmu < nmuons; jmu++){
+
+        bool pass   = false;
+
         // select the probe muon
         if (! selectProbeMuon(ev -> muons.at(jmu), ev -> muons.at(imu), dimuon_mass)) continue;
-
-        offlineiso = ev -> muons.at(jmu).chargedDep_dR03 + std::max(0.,
-                     ev -> muons.at(jmu).photonDep_dR03 + ev -> muons.at(jmu).neutralDep_dR03 - 0.5*ev -> muons.at(jmu).puPt_dR03);
-        offlineiso = offlineiso / ev -> muons.at(jmu).pt;
 
         offlineiso04 = ev -> muons.at(jmu).chargedDep_dR04 + std::max(0.,
                        ev -> muons.at(jmu).photonDep_dR04 + ev -> muons.at(jmu).neutralDep_dR04 - 0.5*ev -> muons.at(jmu).puPt_dR04);
         offlineiso04 = offlineiso04 / ev -> muons.at(jmu).pt;
         
         if (!(offlineiso04 < offlineIsoCut)) continue;
-//         if (!(matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, L3filter))) continue;
+        if (!(matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, L3filter))) continue;
 
-        // fill denumerator histograms
-        muonPt_den    -> Fill( ev -> muons.at(jmu).pt );
-        muonEta_den   -> Fill( ev -> muons.at(jmu).eta);
-        muonPhi_den   -> Fill( ev -> muons.at(jmu).phi);
-        muonIso_den   -> Fill( offlineiso   );
-        muonIso04_den -> Fill( offlineiso04 );
-        nvtx_den      -> Fill( ev -> nVtx   );
+        // match probe muon to the interesting filter and fill numerator histograms
+        if (matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, isofilter))       pass = true; 
+
+        muonPt       -> Fill( pass, ev -> muons.at(jmu).pt );
+        muonEta      -> Fill( pass, ev -> muons.at(jmu).eta);
+        muonPhi      -> Fill( pass, ev -> muons.at(jmu).phi);
+        muonIso      -> Fill( pass, offlineiso04           );
+        nvtx         -> Fill( pass, ev -> nVtx             );
+        
         if (fabs(ev -> muons.at(jmu).eta) < 1.479){
-          muonPt_barrel_den  -> Fill( ev -> muons.at(jmu).pt );
-          nvtx_barrel_den    -> Fill( ev -> nVtx );
-          muonIso_barrel_den -> Fill( offlineiso );
+          muonPt_barrel     -> Fill( pass, ev -> muons.at(jmu).pt );
+          nvtx_barrel       -> Fill( pass, ev -> nVtx );
+          muonIso_barrel    -> Fill( pass, offlineiso04 );
         }
         else{
-          muonPt_endcap_den  -> Fill( ev -> muons.at(jmu).pt );
-          nvtx_endcap_den    -> Fill( ev -> nVtx );
-          muonIso_endcap_den -> Fill( offlineiso );
+          muonPt_endcap     -> Fill( pass, ev -> muons.at(jmu).pt );
+          nvtx_endcap       -> Fill( pass, ev -> nVtx             );
+          muonIso_endcap    -> Fill( pass, offlineiso04           );
         }
 
         if (fabs(ev -> muons.at(jmu).eta) < 0.9){
-          muonPt_eta0_den  -> Fill( ev -> muons.at(jmu).pt );
-          nvtx_eta0_den    -> Fill( ev -> nVtx );
+          muonPt_eta0     -> Fill( pass, ev -> muons.at(jmu).pt );
+          nvtx_eta0       -> Fill( pass, ev -> nVtx );
         }
         else if (fabs(ev -> muons.at(jmu).eta) > 0.9 && fabs(ev -> muons.at(jmu).eta) < 1.2){
-          muonPt_eta1_den  -> Fill( ev -> muons.at(jmu).pt );
-          nvtx_eta1_den    -> Fill( ev -> nVtx );
+          muonPt_eta1     -> Fill( pass, ev -> muons.at(jmu).pt );
+          nvtx_eta1       -> Fill( pass, ev -> nVtx );
         }
         else{
-          muonPt_eta2_den  -> Fill( ev -> muons.at(jmu).pt );
-          nvtx_eta2_den    -> Fill( ev -> nVtx );
-        }
-
-
-        // match probe muon to the interesting filter and fill numerator histograms
-        if (matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, isofilter)){
-          muonPt_num    -> Fill( ev -> muons.at(jmu).pt);
-          muonEta_num   -> Fill( ev -> muons.at(jmu).eta);
-          muonPhi_num   -> Fill( ev -> muons.at(jmu).phi);
-          muonIso_num   -> Fill( offlineiso   );
-          muonIso04_num -> Fill( offlineiso04 );
-          nvtx_num      -> Fill( ev -> nVtx   );
-          if (fabs(ev -> muons.at(jmu).eta) < 1.479){
-            muonPt_barrel_num  -> Fill( ev -> muons.at(jmu).pt );
-            nvtx_barrel_num    -> Fill( ev -> nVtx );
-            muonIso_barrel_num -> Fill( offlineiso );
-          }
-          else{
-            muonPt_endcap_num  -> Fill( ev -> muons.at(jmu).pt );
-            nvtx_endcap_num    -> Fill( ev -> nVtx );
-            muonIso_endcap_num -> Fill( offlineiso );
-          }
-
-		  if (fabs(ev -> muons.at(jmu).eta) < 0.9){
-			muonPt_eta0_num  -> Fill( ev -> muons.at(jmu).pt );
-			nvtx_eta0_num    -> Fill( ev -> nVtx );
-		  }
-		  else if (fabs(ev -> muons.at(jmu).eta) > 0.9 && fabs(ev -> muons.at(jmu).eta) < 1.2){
-			muonPt_eta1_num  -> Fill( ev -> muons.at(jmu).pt );
-			nvtx_eta1_num    -> Fill( ev -> nVtx );
-		  }
-		  else{
-			muonPt_eta2_num  -> Fill( ev -> muons.at(jmu).pt );
-			nvtx_eta2_num    -> Fill( ev -> nVtx );
-		  }
-
-
+          muonPt_eta2     -> Fill( pass, ev -> muons.at(jmu).pt );
+          nvtx_eta2       -> Fill( pass, ev -> nVtx );
         }
       }
-      
     }
-
   }
   
-  outfile            -> cd();
-  muonPt_den         -> Write();
-  muonPt_num         -> Write();
-  muonPt_barrel_den  -> Write();
-  muonPt_barrel_num  -> Write();
-  muonPt_endcap_den  -> Write();
-  muonPt_endcap_num  -> Write();
-  muonPt_eta0_den    -> Write();
-  muonPt_eta0_num    -> Write();
-  muonPt_eta1_den    -> Write();
-  muonPt_eta1_num    -> Write();
-  muonPt_eta2_den    -> Write();
-  muonPt_eta2_num    -> Write();
-  tagMuonPt          -> Write();
+  outfile           -> cd();
+  muonPt            -> Write();
+  muonPt_barrel     -> Write();
+  muonPt_endcap     -> Write();
+  muonPt_eta0       -> Write();
+  muonPt_eta1       -> Write();
+  muonPt_eta2       -> Write();
+  tagMuonPt         -> Write();
   
-  muonEta_den        -> Write();
-  muonEta_num        -> Write();
-  muonPhi_den        -> Write();
-  muonPhi_num        -> Write();
+  muonEta           -> Write();
+  muonPhi           -> Write();
   
-  nvtx_event         -> Write();
-  nvtx_num           -> Write();
-  nvtx_den           -> Write();
-  nvtx_barrel_num    -> Write();
-  nvtx_barrel_den    -> Write();
-  nvtx_endcap_num    -> Write();
-  nvtx_endcap_den    -> Write();
-  nvtx_eta0_num      -> Write();
-  nvtx_eta0_den      -> Write();
-  nvtx_eta1_num      -> Write();
-  nvtx_eta1_den      -> Write();
-  nvtx_eta2_num      -> Write();
-  nvtx_eta2_den      -> Write();
+  nvtx_event        -> Write();
+  nvtx              -> Write();
+  nvtx_barrel       -> Write();
+  nvtx_endcap       -> Write();
+  nvtx_eta0         -> Write();
+  nvtx_eta1         -> Write();
+  nvtx_eta2         -> Write();
   
-  muonIso_num        -> Write();
-  muonIso_den        -> Write();
-  muonIso_barrel_num -> Write();
-  muonIso_barrel_den -> Write();
-  muonIso_endcap_num -> Write();
-  muonIso_endcap_den -> Write();
-  muonIso04_num      -> Write();
-  muonIso04_den      -> Write();
+  muonIso           -> Write();
+  muonIso_barrel    -> Write();
+  muonIso_endcap    -> Write();
 
-  dimuon_mass        -> Write();
-  tagiso             -> Write();
+  dimuon_mass       -> Write();
+  tagiso            -> Write();
   
-  muonPt_num         -> Draw();
-  outfile            -> Close();  
+  outfile           -> Close();  
   
   return;
 }
