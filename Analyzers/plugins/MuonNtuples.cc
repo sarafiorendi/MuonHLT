@@ -16,6 +16,8 @@
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/HLTReco/interface/TriggerEvent.h"
 #include "DataFormats/HLTReco/interface/TriggerObject.h"
+#include "DataFormats/L1Trigger/interface/Muon.h"
+#include "DataFormats/Luminosity/interface/LumiDetails.h"
 #include "DataFormats/Math/interface/deltaR.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/MuonReco/interface/MuonSelectors.h"
@@ -29,12 +31,12 @@
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/Scalers/interface/LumiScalers.h"
-#include "DataFormats/Luminosity/interface/LumiDetails.h"
 
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "HLTrigger/HLTcore/interface/HLTEventAnalyzerAOD.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+
 
 #include <map>
 #include <string>
@@ -76,6 +78,10 @@ class MuonNtuples : public edm::EDAnalyzer {
                     bool isL3 
                    );
 
+  void fillL1Muons(const edm::Handle<l1t::MuonBxCollection> &,
+                    const edm::Event   &
+                   );
+
   void MonteCarloStudies(const edm::Event&);
   
 
@@ -103,6 +109,8 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> l3candToken_; 
   edm::InputTag l2candTag_;
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> l2candToken_; 
+  edm::InputTag l1candTag_;
+  edm::EDGetTokenT<l1t::MuonBxCollection> l1candToken_; 
 
   edm::InputTag chargedDepTag_;
   edm::EDGetTokenT<reco::IsoDepositMap> chargedDepToken_;
@@ -173,6 +181,8 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
     l3candToken_            (consumes<reco::RecoChargedCandidateCollection>(l3candTag_)),
   l2candTag_              (cfg.getUntrackedParameter<edm::InputTag>("L2Candidates")),
     l2candToken_            (consumes<reco::RecoChargedCandidateCollection>(l2candTag_)),
+  l1candTag_              (cfg.getUntrackedParameter<edm::InputTag>("L1Candidates")),
+    l1candToken_            (consumes<l1t::MuonBxCollection>(l1candTag_)),
 
   chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
     chargedDepToken_        (consumes<reco::IsoDepositMap>(chargedDepTag_)), 
@@ -341,6 +351,13 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     fillHltMuons(l2cands, event, false);
   else
     edm::LogWarning("") << "Online L2 muon collection not found !!!";
+
+  // Handle the online muon collection and fill L1 muons
+  edm::Handle<l1t::MuonBxCollection> l1cands;
+  if (event.getByToken(l1candToken_, l1cands))
+    fillL1Muons(l1cands, event);
+  else
+    edm::LogWarning("") << "Online L1 muon collection not found !!!";
   
   // endEvent();
   tree_["muonTree"] -> Fill();
@@ -611,6 +628,33 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
 }
 
 
+
+// ---------------------------------------------------------------------
+void MuonNtuples::fillL1Muons(const edm::Handle<l1t::MuonBxCollection> & l1cands ,
+                              const edm::Event                         & event    
+                              )
+{
+
+  for (int ibx = l1cands->getFirstBX(); ibx <= l1cands->getLastBX(); ++ibx) {
+    if (ibx != 0) continue;
+    for (auto it = l1cands->begin(ibx); it != l1cands->end(ibx); it++){
+
+      l1t::MuonRef muon(l1cands, distance(l1cands->begin(l1cands->getFirstBX()),it) );
+
+      L1MuonCand theL1Mu;
+
+      theL1Mu.pt       = muon -> pt();
+      theL1Mu.eta      = muon -> eta();
+      theL1Mu.phi      = muon -> phi();
+      theL1Mu.charge   = muon -> charge();
+      theL1Mu.quality  = muon -> hwQual();
+
+      event_.L1muons.push_back(theL1Mu);
+    }
+  }
+}
+
+
 //---------------------------------------------
 void MuonNtuples::beginEvent()
 {
@@ -627,6 +671,7 @@ void MuonNtuples::beginEvent()
   event_.muons.clear();
   event_.hltmuons.clear();
   event_.L2muons.clear();
+  event_.L1muons.clear();
   
   for (unsigned int ix=0; ix<3; ++ix) {
     event_.primaryVertex[ix] = 0.;

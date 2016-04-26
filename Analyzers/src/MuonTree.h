@@ -94,6 +94,23 @@ public:
 };
 
 
+class L1MuonCand {
+public:
+
+  Float_t pt;           
+  Float_t eta;          
+  Float_t phi;          
+  Int_t   charge;      
+  Int_t   quality;      
+  
+  L1MuonCand(){};
+  virtual ~L1MuonCand(){};
+
+  ClassDef(L1MuonCand,1)
+
+};
+
+
 
 class HLTObjCand {
 public:
@@ -162,6 +179,7 @@ public:
   std::vector <MuonCand>        muons;         
   std::vector <HLTMuonCand>     hltmuons;      
   std::vector <HLTMuonCand>     L2muons;      
+  std::vector <L1MuonCand>      L1muons;      
   HLTInfo                       hlt;           
   HLTInfo                       hltTag;            
 
