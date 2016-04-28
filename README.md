@@ -3,8 +3,6 @@
 cmsrel CMSSW_8_0_0  
 cmsenv  
 git cms-addpkg HLTrigger/Configuration  
-mkdir MyTools  
-cd MyTools  
 git clone git@github.com:sarafiorendi/MuonHLT.git  
 
 this gist customize the hlt configuration to run the ntuplizer 
