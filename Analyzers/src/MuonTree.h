@@ -177,6 +177,7 @@ public:
 
   std::vector <GenParticleCand> genParticles; 
   std::vector <MuonCand>        muons;         
+  std::vector <HLTMuonCand>     tkmuons;      
   std::vector <HLTMuonCand>     hltmuons;      
   std::vector <HLTMuonCand>     L2muons;      
   std::vector <L1MuonCand>      L1muons;      

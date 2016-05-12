@@ -75,7 +75,8 @@ class MuonNtuples : public edm::EDAnalyzer {
 
   void fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
                     const edm::Event   &,
-                    bool isL3 
+                    bool isL3           ,
+                    bool isTk
                    );
 
   void fillL1Muons(const edm::Handle<l1t::MuonBxCollection> &,
@@ -111,6 +112,8 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> l2candToken_; 
   edm::InputTag l1candTag_;
   edm::EDGetTokenT<l1t::MuonBxCollection> l1candToken_; 
+  edm::InputTag tkMucandTag_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> tkMucandToken_; 
 
   edm::InputTag chargedDepTag_;
   edm::EDGetTokenT<reco::IsoDepositMap> chargedDepToken_;
@@ -183,6 +186,8 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
     l2candToken_            (consumes<reco::RecoChargedCandidateCollection>(l2candTag_)),
   l1candTag_              (cfg.getUntrackedParameter<edm::InputTag>("L1Candidates")),
     l1candToken_            (consumes<l1t::MuonBxCollection>(l1candTag_)),
+  tkMucandTag_              (cfg.getUntrackedParameter<edm::InputTag>("TkMuCandidates")),
+    tkMucandToken_            (consumes<reco::RecoChargedCandidateCollection>(tkMucandTag_)),
 
   chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
     chargedDepToken_        (consumes<reco::IsoDepositMap>(chargedDepTag_)), 
@@ -327,28 +332,28 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   edm::Handle<edm::TriggerResults>   tagTriggerResults;
   edm::Handle<trigger::TriggerEvent> tagTriggerEvent;
       
-//   if (event.getByToken(tagTriggerResultToken_, tagTriggerResults) &&
-//       event.getByToken(tagTriggerSummToken_  , tagTriggerEvent)) {
-//       
-//     edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
-//     fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
-//   }
-//   else 
-//     edm::LogError("") << "Trigger collection for tag muon not found !!!";
+  if (event.getByToken(tagTriggerResultToken_, tagTriggerResults) &&
+      event.getByToken(tagTriggerSummToken_  , tagTriggerEvent)) {
+      
+    edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
+    fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
+  }
+  else 
+    edm::LogError("") << "Trigger collection for tag muon not found !!!";
 
 
 
   // Handle the online muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
   if (event.getByToken(l3candToken_, l3cands))
-    fillHltMuons(l3cands, event, true);
+    fillHltMuons(l3cands, event, true, false);
   else
     edm::LogWarning("") << "Online muon collection not found !!!";
 
   // Handle the online muon collection and fill L2 muons
   edm::Handle<reco::RecoChargedCandidateCollection> l2cands;
   if (event.getByToken(l2candToken_, l2cands))
-    fillHltMuons(l2cands, event, false);
+    fillHltMuons(l2cands, event, false, false);
   else
     edm::LogWarning("") << "Online L2 muon collection not found !!!";
 
@@ -359,6 +364,14 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   else
     edm::LogWarning("") << "Online L1 muon collection not found !!!";
   
+  // Handle the online tk muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> tkMucands;
+  if (event.getByToken(tkMucandToken_, tkMucands))
+    fillHltMuons(tkMucands, event, false, true);
+  else
+    edm::LogWarning("") << "Online tracker muon collection not found !!!";
+
+
   // endEvent();
   tree_["muonTree"] -> Fill();
 }
@@ -519,7 +532,7 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
       theMu.hcalPFCluster_dR03 = muHCalIso03[nmuonRef];
     }
     else {
-      edm::LogWarning("") << "Offline PF cluster in dR 03 collection not found !!!";
+//       edm::LogWarning("") << "Offline PF cluster in dR 03 collection not found !!!";
       theMu.ecalPFCluster_dR03 = -9999 ;
       theMu.hcalPFCluster_dR03 = -9999 ;
     }
@@ -535,7 +548,7 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
       theMu.hcalPFCluster_dR04 = muHCalIso04[nmuonRef];
     }
     else {
-      edm::LogWarning("") << "Offline PF cluster in dR 04 collection not found !!!";
+//       edm::LogWarning("") << "Offline PF cluster in dR 04 collection not found !!!";
       theMu.ecalPFCluster_dR04 = -9999 ;
       theMu.hcalPFCluster_dR04 = -9999 ;
     }
@@ -550,7 +563,8 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
 // ---------------------------------------------------------------------
 void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> & l3cands ,
                                const edm::Event                                        & event   , 
-                               bool isL3
+                               bool isL3                                                         ,
+                               bool isTk
                                )
 {
 
@@ -590,7 +604,7 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
       theL3Mu.trkDep  = theTkIsolation.depositWithin(0.3);
     }
     else {
-      edm::LogWarning("") << "Online PF cluster collection not found !!!";
+//       edm::LogWarning("") << "Online PF cluster collection not found !!!";
       theL3Mu.hcalDep =  -9999 ;
       theL3Mu.ecalDep =  -9999 ; 
       theL3Mu.trkDep  =  -9999 ;
@@ -615,15 +629,16 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
       theL3Mu.ecalDep1  = ecal_mapi1 ->val; 
     }
     else {
-      edm::LogWarning("") << "Online PF cluster collection not found !!!";
+//       edm::LogWarning("") << "Online PF cluster collection not found !!!";
       theL3Mu.hcalDep05 =  -9999 ;
       theL3Mu.ecalDep05 =  -9999 ; 
       theL3Mu.hcalDep1  =  -9999 ;
       theL3Mu.ecalDep1  =  -9999 ;
     }
 
-    if (isL3) event_.hltmuons.push_back(theL3Mu);
-    else      event_.L2muons .push_back(theL3Mu);
+    if       (isL3  && !isTk)  event_.hltmuons.push_back(theL3Mu);
+    else if  (!isL3 && !isTk)  event_.L2muons .push_back(theL3Mu);
+    else if  (!isL3 &&  isTk)  event_.tkmuons .push_back(theL3Mu);
   }
 }
 
@@ -672,6 +687,7 @@ void MuonNtuples::beginEvent()
   event_.hltmuons.clear();
   event_.L2muons.clear();
   event_.L1muons.clear();
+  event_.tkmuons.clear();
   
   for (unsigned int ix=0; ix<3; ++ix) {
     event_.primaryVertex[ix] = 0.;
