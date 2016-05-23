@@ -343,7 +343,7 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
 
 
 
-  // Handle the online muon collection and fill online muons
+ // Handle the online muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
   if (event.getByToken(l3candToken_, l3cands))
     fillHltMuons(l3cands, event, true, false);
@@ -591,7 +591,8 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     reco::TrackRef trkmu = candref->track();
     theL3Mu.trkpt   = trkmu -> pt();
 
-    if (event.getByToken(chargedDepToken_, trkDepMap)     &&
+    if (isL3                                              && 
+        event.getByToken(chargedDepToken_, trkDepMap)     &&
         event.getByToken(neutralDepToken_, neutralDepMap) &&
         event.getByToken(photonsDepToken_, photonsDepMap) ){
         
@@ -615,7 +616,8 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     if (event.getByToken(neutralDepToken05_, neutralDepMap05) &&
         event.getByToken(photonsDepToken05_, photonsDepMap05) &&
         event.getByToken(neutralDepToken1_,  neutralDepMap1 ) &&
-        event.getByToken(photonsDepToken1_,  photonsDepMap1 ) 
+        event.getByToken(photonsDepToken1_,  photonsDepMap1 ) &&
+        isL3  
         ){
         
       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi05 = (*neutralDepMap05).find( candref );
