@@ -11,7 +11,10 @@ git merge origin/addL1info
 cd ..  
 scramv1 b   
   
-this gist customize the hlt configuration to run the ntuplizer for isolation studies
+to produce ntuples, just run    
+cmsRun hltNtuples_cfg.py
+
+this gist customize the hlt configuration to re-run the hlt and the ntuplizer for isolation studies
 https://gist.github.com/sarafiorendi/02b4a43c28766ec7beddabe3f5ae036e
   
 what is in here:  
