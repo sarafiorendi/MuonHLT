@@ -30,8 +30,9 @@ process.muonNtuples =cms.EDAnalyzer("MuonNtuples",
                        tagTriggerSummary        = cms.untracked.InputTag("hltTriggerSummaryAOD::HLT"),
                        
                        L3Candidates             = cms.untracked.InputTag("hltL3MuonCandidates"), 
-                       L2Candidates             = cms.untracked.InputTag(""), 
-                       L1Candidates             = cms.untracked.InputTag(""), 
+                       L2Candidates             = cms.untracked.InputTag("hltL2MuonCandidates"), 
+                       L1Candidates             = cms.untracked.InputTag("hltGmtStage2Digis", "Muon"), 
+                       TkMuCandidates           = cms.untracked.InputTag("hltHighPtTkMuonCands"), 
                        NeutralDeposit           = cms.untracked.InputTag("hltMuonHcalPFClusterIsoForMuons"), 
                        PhotonsDeposit           = cms.untracked.InputTag("hltMuonEcalPFClusterIsoForMuons"), 
                        NeutralDeposit05         = cms.untracked.InputTag("hltMuonHcalPFClusterIsoForMuonsNoEffAreaVeto0p05"), 
@@ -58,7 +59,7 @@ process.muonNtuples =cms.EDAnalyzer("MuonNtuples",
 process.mypath  = cms.Path(process.muonNtuples)
 
 process.TFileService = cms.Service("TFileService",
-                                   fileName = cms.string("muonNtuple_run258158.root"),
+                                   fileName = cms.string("muonNtuple.root"),
                                    closeFileFast = cms.untracked.bool(False)
                                    )
 
