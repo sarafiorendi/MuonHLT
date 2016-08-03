@@ -329,17 +329,17 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     edm::LogError("") << "Trigger collection for probe muon not found !!!";
 
   // Fill trigger information for tag muon
-  edm::Handle<edm::TriggerResults>   tagTriggerResults;
-  edm::Handle<trigger::TriggerEvent> tagTriggerEvent;
-      
-  if (event.getByToken(tagTriggerResultToken_, tagTriggerResults) &&
-      event.getByToken(tagTriggerSummToken_  , tagTriggerEvent)) {
-      
-    edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
-    fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
-  }
-  else 
-    edm::LogError("") << "Trigger collection for tag muon not found !!!";
+//   edm::Handle<edm::TriggerResults>   tagTriggerResults;
+//   edm::Handle<trigger::TriggerEvent> tagTriggerEvent;
+//       
+//   if (event.getByToken(tagTriggerResultToken_, tagTriggerResults) &&
+//       event.getByToken(tagTriggerSummToken_  , tagTriggerEvent)) {
+//       
+//     edm::TriggerNames tagTriggerNames_ = event.triggerNames(*tagTriggerResults);
+//     fillHlt(tagTriggerResults, tagTriggerEvent, tagTriggerNames_, event, true);
+//   }
+//   else 
+//     edm::LogError("") << "Trigger collection for tag muon not found !!!";
 
 
 
@@ -439,8 +439,17 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
     if (triggerResults->accept(itrig)) 
     {
       std::string pathName = triggerNames.triggerName(itrig);
-      if (isTag) event_.hltTag.triggers.push_back(pathName);
-      else       event_.hlt   .triggers.push_back(pathName);
+
+      if ( pathName.find ("HLT_IsoMu"  ) !=std::string::npos ||
+           pathName.find ("HLT_Mu45"   ) !=std::string::npos ||
+           pathName.find ("HLT_Mu5"    ) !=std::string::npos ||
+           pathName.find ("HLT_IsoTkMu") !=std::string::npos ||
+           pathName.find ("HLT_Mu17"   ) !=std::string::npos ||
+           pathName.find ("HLT_Mu8_T"  ) !=std::string::npos 
+      ){
+        if (isTag) event_.hltTag.triggers.push_back(pathName);
+        else       event_.hlt   .triggers.push_back(pathName);
+      }
     }
   }
      
@@ -450,25 +459,34 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
   {
     std::string filterTag = triggerEvent->filterTag(iFilter).encode();
 
-    trigger::Keys objectKeys = triggerEvent->filterKeys(iFilter);
-    const trigger::TriggerObjectCollection& triggerObjects(triggerEvent->getObjects());
-    
-    for (trigger::size_type iKey=0; iKey<objectKeys.size(); ++iKey) 
-    {  
-      trigger::size_type objKey = objectKeys.at(iKey);
-      const trigger::TriggerObject& triggerObj(triggerObjects[objKey]);
+    if ( ( filterTag.find ("sMu"       ) !=std::string::npos ||
+           filterTag.find ("SingleMu"  ) !=std::string::npos ||
+           filterTag.find ("DoubleMu"  ) !=std::string::npos ||
+           filterTag.find ("DiMuonGlb" ) !=std::string::npos
+           ) && 
+           filterTag.find ("Tau"       ) ==std::string::npos   &&
+           filterTag.find ("MultiFit"  ) ==std::string::npos  
+       )   
+    {
+      trigger::Keys objectKeys = triggerEvent->filterKeys(iFilter);
+      const trigger::TriggerObjectCollection& triggerObjects(triggerEvent->getObjects());
       
-      HLTObjCand hltObj;
-      
-      hltObj.filterTag = filterTag;
-
-      hltObj.pt  = triggerObj.pt();
-      hltObj.eta = triggerObj.eta();
-      hltObj.phi = triggerObj.phi();
-      
-      if (isTag)       event_.hltTag.objects.push_back(hltObj);
-      else             event_.hlt   .objects.push_back(hltObj);
-      
+      for (trigger::size_type iKey=0; iKey<objectKeys.size(); ++iKey) 
+      {  
+        trigger::size_type objKey = objectKeys.at(iKey);
+        const trigger::TriggerObject& triggerObj(triggerObjects[objKey]);
+        
+        HLTObjCand hltObj;
+        
+        hltObj.filterTag = filterTag;
+  
+        hltObj.pt  = triggerObj.pt();
+        hltObj.eta = triggerObj.eta();
+        hltObj.phi = triggerObj.phi();
+        
+        if (isTag)       event_.hltTag.objects.push_back(hltObj);
+        else             event_.hlt   .objects.push_back(hltObj);
+      }  
     }       
   }
   
@@ -499,6 +517,7 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
     theMu.eta     = mu1 -> eta();
     theMu.phi     = mu1 -> phi();
     theMu.charge  = mu1 -> charge();
+    theMu.vz      = mu1 -> vz();
 
     mu1 -> isGlobalMuon  () ? theMu.isGlobal  = 1 : theMu.isGlobal   = 0;
     mu1 -> isTrackerMuon () ? theMu.isTracker = 1 : theMu.isTracker  = 0;
@@ -572,24 +591,30 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap;
   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap;
 
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap05;
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap05;
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap1 ;
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap1 ;
-
+//   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap05;
+//   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap05;
+//   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap1 ;
+//   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap1 ;
+// 
 
   for( unsigned int il3 = 0; il3 < l3cands->size(); ++il3) 
   {
     HLTMuonCand theL3Mu;
 
     reco::RecoChargedCandidateRef candref(l3cands, il3);
-    theL3Mu.pt      = candref -> pt();
-    theL3Mu.eta     = candref -> eta();
-    theL3Mu.phi     = candref -> phi();
-    theL3Mu.charge  = candref -> charge();
+    theL3Mu.pt        = candref -> pt();
+    theL3Mu.eta       = candref -> eta();
+    theL3Mu.phi       = candref -> phi();
+    theL3Mu.charge    = candref -> charge();
+    theL3Mu.vz        = candref -> vz();
 
     reco::TrackRef trkmu = candref->track();
-    theL3Mu.trkpt   = trkmu -> pt();
+
+    theL3Mu.trkpt     = trkmu -> pt();
+    theL3Mu.n_pix_hit = trkmu -> hitPattern().numberOfValidPixelHits(); 
+    theL3Mu.n_trk_hit = trkmu -> hitPattern().numberOfValidTrackerHits();
+    theL3Mu.n_pix_lay = trkmu -> hitPattern().pixelLayersWithMeasurement() ;
+    theL3Mu.n_trk_lay = trkmu -> hitPattern().trackerLayersWithMeasurement(); 
 
     if (isL3                                              && 
         event.getByToken(chargedDepToken_, trkDepMap)     &&
@@ -613,30 +638,30 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
 
 
     // fill deposits with veto cones
-    if (event.getByToken(neutralDepToken05_, neutralDepMap05) &&
-        event.getByToken(photonsDepToken05_, photonsDepMap05) &&
-        event.getByToken(neutralDepToken1_,  neutralDepMap1 ) &&
-        event.getByToken(photonsDepToken1_,  photonsDepMap1 ) &&
-        isL3  
-        ){
-        
-      reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi05 = (*neutralDepMap05).find( candref );
-      reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi05 = (*photonsDepMap05).find( candref );
-      reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi1  = (*neutralDepMap1 ).find( candref );
-      reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi1  = (*photonsDepMap1 ).find( candref );
-
-      theL3Mu.hcalDep05 = hcal_mapi05->val;
-      theL3Mu.ecalDep05 = ecal_mapi05->val; 
-      theL3Mu.hcalDep1  = hcal_mapi1 ->val;
-      theL3Mu.ecalDep1  = ecal_mapi1 ->val; 
-    }
-    else {
-//       edm::LogWarning("") << "Online PF cluster collection not found !!!";
-      theL3Mu.hcalDep05 =  -9999 ;
-      theL3Mu.ecalDep05 =  -9999 ; 
-      theL3Mu.hcalDep1  =  -9999 ;
-      theL3Mu.ecalDep1  =  -9999 ;
-    }
+//     if (event.getByToken(neutralDepToken05_, neutralDepMap05) &&
+//         event.getByToken(photonsDepToken05_, photonsDepMap05) &&
+//         event.getByToken(neutralDepToken1_,  neutralDepMap1 ) &&
+//         event.getByToken(photonsDepToken1_,  photonsDepMap1 ) &&
+//         isL3  
+//         ){
+//         
+//       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi05 = (*neutralDepMap05).find( candref );
+//       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi05 = (*photonsDepMap05).find( candref );
+//       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi1  = (*neutralDepMap1 ).find( candref );
+//       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi1  = (*photonsDepMap1 ).find( candref );
+// 
+//       theL3Mu.hcalDep05 = hcal_mapi05->val;
+//       theL3Mu.ecalDep05 = ecal_mapi05->val; 
+//       theL3Mu.hcalDep1  = hcal_mapi1 ->val;
+//       theL3Mu.ecalDep1  = ecal_mapi1 ->val; 
+//     }
+//     else {
+// //       edm::LogWarning("") << "Online PF cluster collection not found !!!";
+//       theL3Mu.hcalDep05 =  -9999 ;
+//       theL3Mu.ecalDep05 =  -9999 ; 
+//       theL3Mu.hcalDep1  =  -9999 ;
+//       theL3Mu.ecalDep1  =  -9999 ;
+//     }
 
     if       (isL3  && !isTk)  event_.hltmuons.push_back(theL3Mu);
     else if  (!isL3 && !isTk)  event_.L2muons .push_back(theL3Mu);

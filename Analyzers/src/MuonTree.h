@@ -35,6 +35,7 @@ public:
   Float_t eta; 
   Float_t phi; 
   Int_t   charge;    
+  Float_t vz; 
 
   Int_t   isGlobal;
   Int_t   isTracker;
@@ -76,15 +77,21 @@ public:
   Float_t phi;          
   Float_t trkpt;         // pt of the track of the hlt muon [GeV]
   Int_t   charge;         // pt of the track of the hlt muon [GeV]
+  Float_t vz; 
+
+  Int_t   n_pix_hit;         // pt of the track of the hlt muon [GeV]
+  Int_t   n_trk_hit;         // pt of the track of the hlt muon [GeV]
+  Int_t   n_pix_lay;         // pt of the track of the hlt muon [GeV]
+  Int_t   n_trk_lay;         // pt of the track of the hlt muon [GeV]
   
   Float_t ecalDep;
   Float_t hcalDep;
   Float_t trkDep;
 
-  Float_t ecalDep05;
-  Float_t hcalDep05;
-  Float_t ecalDep1;
-  Float_t hcalDep1;
+//   Float_t ecalDep05;
+//   Float_t hcalDep05;
+//   Float_t ecalDep1;
+//   Float_t hcalDep1;
 
   HLTMuonCand(){};
   virtual ~HLTMuonCand(){};
@@ -147,6 +154,7 @@ public:
 
   bool find( const std::string & path ) {
 	for ( std::vector<std::string>::const_iterator it = triggers.begin(); it != triggers.end(); ++it ) {
+//       std::cout << *it << std::endl;
       if ( it-> compare(path) == 0) return true;
 //       if ( it->find ( path ) != std::string::npos ) return true;
 	}

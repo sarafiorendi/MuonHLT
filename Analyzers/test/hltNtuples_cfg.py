@@ -4,9 +4,9 @@ process = cms.Process("NTUPLE")
 
 process.source = cms.Source("PoolSource",
                     fileNames = cms.untracked.vstring(
-                      '/store/data/Run2015D/SingleMuon/RAW-RECO/ZMu-PromptReco-v3/000/258/158/00000/FA0B284A-856B-E511-9378-02163E0133E8.root',
-                      '/store/data/Run2015D/SingleMuon/RAW-RECO/ZMu-PromptReco-v3/000/258/158/00000/FAC77F63-8F6B-E511-9911-02163E0145FD.root',
-                      '/store/data/Run2015D/SingleMuon/RAW-RECO/ZMu-PromptReco-v3/000/258/158/00000/FE6D8959-7C6B-E511-B41B-02163E0137BC.root',
+                      'root://cms-xrd-global.cern.ch//store/data/Run2016D/SingleMuon/AOD/PromptReco-v2/000/276/315/00000/823C59DC-F744-E611-9E79-02163E0133A4.root',
+#                       '/store/data/Run2015D/SingleMuon/RAW-RECO/ZMu-PromptReco-v3/000/258/158/00000/FAC77F63-8F6B-E511-9911-02163E0145FD.root',
+#                       '/store/data/Run2015D/SingleMuon/RAW-RECO/ZMu-PromptReco-v3/000/258/158/00000/FE6D8959-7C6B-E511-B41B-02163E0137BC.root',
                     ),
                     secondaryFileNames = cms.untracked.vstring(),
 #                     lumisToProcess = cms.untracked.VLuminosityBlockRange('258158:1-258158:1786'),
@@ -14,7 +14,7 @@ process.source = cms.Source("PoolSource",
 )
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_condDBv2_cff")
-process.GlobalTag.globaltag = '74X_dataRun2_Prompt_v2'
+process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v10'
 
 process.load("Configuration.StandardSequences.MagneticField_AutoFromDBCurrent_cff")
 process.load('Configuration.Geometry.GeometryRecoDB_cff')
@@ -32,7 +32,7 @@ process.muonNtuples =cms.EDAnalyzer("MuonNtuples",
                        L3Candidates             = cms.untracked.InputTag("hltL3MuonCandidates"), 
                        L2Candidates             = cms.untracked.InputTag("hltL2MuonCandidates"), 
                        L1Candidates             = cms.untracked.InputTag("hltGmtStage2Digis", "Muon"), 
-                       TkMuCandidates           = cms.untracked.InputTag("hltHighPtTkMuonCands"), 
+                       TkMuCandidates           = cms.untracked.InputTag("hltGlbTrkMuonCands"),  #hltHighPtTkMuonCands
                        NeutralDeposit           = cms.untracked.InputTag("hltMuonHcalPFClusterIsoForMuons"), 
                        PhotonsDeposit           = cms.untracked.InputTag("hltMuonEcalPFClusterIsoForMuons"), 
                        NeutralDeposit05         = cms.untracked.InputTag("hltMuonHcalPFClusterIsoForMuonsNoEffAreaVeto0p05"), 
@@ -67,11 +67,11 @@ process.TFileService = cms.Service("TFileService",
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))   
 
 
-process.MessageLogger = cms.Service("MessageLogger",
-   destinations   = cms.untracked.vstring('cerr'),
-   cerr           = cms.untracked.PSet(
-       threshold      = cms.untracked.string('ERROR'),
-   ),
-#    debugModules  = cms.untracked.vstring('*')
-)
-
+# process.MessageLogger = cms.Service("MessageLogger",
+#    destinations   = cms.untracked.vstring('cerr'),
+#    cerr           = cms.untracked.PSet(
+#        threshold      = cms.untracked.string('ERROR'),
+#    ),
+# #    debugModules  = cms.untracked.vstring('*')
+# )
+# 
