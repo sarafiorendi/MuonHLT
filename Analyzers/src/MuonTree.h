@@ -79,6 +79,7 @@ public:
   
   Float_t ecalDep;
   Float_t hcalDep;
+  Float_t trkDep2016;
   Float_t trkDep;
 
   Float_t ecalDep05;
