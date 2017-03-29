@@ -138,7 +138,18 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::EDGetTokenT<double> rhoCorrectionToken_;
   edm::InputTag rhoCorrectionOfflineTag_;
   edm::EDGetTokenT<double> rhoCorrectionOfflineToken_;
+ 
+  edm::InputTag rhoCorrectionOnline05Tag_;
+  edm::EDGetTokenT<double> rhoCorrectionOnline05Token_;
+  edm::InputTag rhoCorrectionECALTag_;
+  edm::EDGetTokenT<double> rhoCorrectionECALToken_;
+  edm::InputTag rhoCorrectionHCALTag_;
+  edm::EDGetTokenT<double> rhoCorrectionHCALToken_;
 
+  edm::InputTag rhoCorrectionECAL05Tag_;
+  edm::EDGetTokenT<double> rhoCorrectionECAL05Token_;
+  edm::InputTag rhoCorrectionHCAL05Tag_;
+  edm::EDGetTokenT<double> rhoCorrectionHCAL05Token_;
   edm::InputTag offlineECalPFTag03_;
   edm::EDGetTokenT<edm::ValueMap<float>> offlineECalPFToken03_;
   edm::InputTag offlineHCalPFTag03_;
@@ -215,6 +226,17 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
   rhoCorrectionOfflineTag_(cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOffline")), 
     rhoCorrectionOfflineToken_(consumes<double>(rhoCorrectionOfflineTag_)), 
 
+  rhoCorrectionOnline05Tag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOnline05")),
+    rhoCorrectionOnline05Token_     (consumes<double>(rhoCorrectionOnline05Tag_)),
+  rhoCorrectionECALTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECAL")),
+    rhoCorrectionECALToken_     (consumes<double>(rhoCorrectionECALTag_)),
+  rhoCorrectionHCALTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCAL")),
+    rhoCorrectionHCALToken_     (consumes<double>(rhoCorrectionHCALTag_)),
+  rhoCorrectionECAL05Tag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECAL05")),
+    rhoCorrectionECAL05Token_     (consumes<double>(rhoCorrectionECAL05Tag_)),
+  rhoCorrectionHCAL05Tag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCAL05")),
+    rhoCorrectionHCAL05Token_     (consumes<double>(rhoCorrectionHCAL05Tag_)),
+  
   offlineECalPFTag03_     (cfg.getUntrackedParameter<edm::InputTag>("offlineECalPFIso03")),
     offlineECalPFToken03_   (consumes<edm::ValueMap<float>>(offlineECalPFTag03_)), 
   offlineHCalPFTag03_     (cfg.getUntrackedParameter<edm::InputTag>("offlineHCalPFIso03")),
@@ -444,44 +466,94 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
     if (triggerResults->accept(itrig)) 
     {
       std::string pathName = triggerNames.triggerName(itrig);
-      if (isTag) event_.hltTag.triggers.push_back(pathName);
-      else       event_.hlt   .triggers.push_back(pathName);
+      if ( pathName.find ("HLT_IsoMu"  ) !=std::string::npos ||
+           pathName.find ("HLT_Mu45"   ) !=std::string::npos ||
+           pathName.find ("HLT_Mu5"    ) !=std::string::npos ||
+           pathName.find ("HLT_TkMu5"  ) !=std::string::npos ||
+           pathName.find ("HLT_IsoTkMu") !=std::string::npos ||
+           pathName.find ("HLT_Mu17"   ) !=std::string::npos ||
+           pathName.find ("HLT_Mu8_T"  ) !=std::string::npos
+      ){
+        if (isTag) event_.hltTag.triggers.push_back(pathName);
+        else       event_.hlt   .triggers.push_back(pathName);
+      }
     }
   }
      
      
   const trigger::size_type nFilters(triggerEvent->sizeFilters());
-  for (trigger::size_type iFilter=0; iFilter!=nFilters; ++iFilter) 
+  for (trigger::size_type iFilter=0; iFilter!=nFilters; ++iFilter)
   {
     std::string filterTag = triggerEvent->filterTag(iFilter).encode();
 
-    trigger::Keys objectKeys = triggerEvent->filterKeys(iFilter);
-    const trigger::TriggerObjectCollection& triggerObjects(triggerEvent->getObjects());
-    
-    for (trigger::size_type iKey=0; iKey<objectKeys.size(); ++iKey) 
-    {  
-      trigger::size_type objKey = objectKeys.at(iKey);
-      const trigger::TriggerObject& triggerObj(triggerObjects[objKey]);
+    if ( ( filterTag.find ("sMu22"     ) !=std::string::npos ||
+           filterTag.find ("sMu25"     ) !=std::string::npos
+//            filterTag.find ("DoubleMu"  ) !=std::string::npos ||
+//            filterTag.find ("DiMuonGlb" ) !=std::string::npos
+           ) &&
+           filterTag.find ("Tau"       ) ==std::string::npos   &&
+           filterTag.find ("EG"        ) ==std::string::npos   &&
+           filterTag.find ("MultiFit"  ) ==std::string::npos
+       )
+    {
+      std::string filterTag = triggerEvent->filterTag(iFilter).encode();
+  
+      trigger::Keys objectKeys = triggerEvent->filterKeys(iFilter);
+      const trigger::TriggerObjectCollection& triggerObjects(triggerEvent->getObjects());
       
-      HLTObjCand hltObj;
-      
-      hltObj.filterTag = filterTag;
-
-      hltObj.pt  = triggerObj.pt();
-      hltObj.eta = triggerObj.eta();
-      hltObj.phi = triggerObj.phi();
-      
-      if (isTag)       event_.hltTag.objects.push_back(hltObj);
-      else             event_.hlt   .objects.push_back(hltObj);
-      
-    }       
+      for (trigger::size_type iKey=0; iKey<objectKeys.size(); ++iKey) 
+      {  
+        trigger::size_type objKey = objectKeys.at(iKey);
+        const trigger::TriggerObject& triggerObj(triggerObjects[objKey]);
+        
+        HLTObjCand hltObj;
+        
+        hltObj.filterTag = filterTag;
+  
+        hltObj.pt  = triggerObj.pt();
+        hltObj.eta = triggerObj.eta();
+        hltObj.phi = triggerObj.phi();
+        
+        if (isTag)       event_.hltTag.objects.push_back(hltObj);
+        else             event_.hlt   .objects.push_back(hltObj);
+        
+      }
+    }         
   }
   
   // fill hlt rho information
-  edm::Handle <double>  hltRhoCollection;
-  if (event.getByToken(rhoCorrectionToken_, hltRhoCollection) && hltRhoCollection.isValid()){
-    if (isTag)    event_.hltTag.rho = *(hltRhoCollection.product());
-    else          event_.hlt   .rho = *(hltRhoCollection.product());
+  if (!isTag){
+    edm::Handle <double>  hltRhoCollection;
+    if (event.getByToken(rhoCorrectionToken_, hltRhoCollection) && hltRhoCollection.isValid()){
+       event_.hlt   .rho = *(hltRhoCollection.product());
+    } 
+
+    edm::Handle <double>  hltRhoCollection05;
+    if (event.getByToken(rhoCorrectionOnline05Token_, hltRhoCollection05) && hltRhoCollection05.isValid()){
+      event_.hlt   .rho05 = *(hltRhoCollection05.product());
+    }
+  
+    // rho ecal
+    edm::Handle <double>  hltRhoECALCollection;
+    if (event.getByToken(rhoCorrectionECALToken_, hltRhoECALCollection) && hltRhoECALCollection.isValid()){
+      event_.hlt   .rho_ecal = *(hltRhoECALCollection.product());
+    }
+    // rho hcal
+    edm::Handle <double>  hltRhoHCALCollection;
+    if (event.getByToken(rhoCorrectionHCALToken_, hltRhoHCALCollection) && hltRhoHCALCollection.isValid()){
+      event_.hlt   .rho_hcal = *(hltRhoHCALCollection.product());
+    }
+  
+    // rho ecal ( eta up to 5.0 )
+    edm::Handle <double>  hltRhoECAL05Collection;
+    if (event.getByToken(rhoCorrectionECAL05Token_, hltRhoECAL05Collection) && hltRhoECAL05Collection.isValid()){
+      event_.hlt   .rho_ecal05 = *(hltRhoECAL05Collection.product());
+    }
+    // rho hcal ( eta up to 5.0 )
+    edm::Handle <double>  hltRhoHCAL05Collection;
+    if (event.getByToken(rhoCorrectionHCAL05Token_, hltRhoHCAL05Collection) && hltRhoHCAL05Collection.isValid()){
+      event_.hlt   .rho_hcal05 = *(hltRhoHCAL05Collection.product());
+    }
   }
 }
 
@@ -689,8 +761,13 @@ void MuonNtuples::beginEvent()
 
   event_.hlt.triggers.clear();
   event_.hlt.objects.clear();
-  event_.hlt.rho = -1;
-
+  event_.hlt.rho        = -1;
+  event_.hlt.rho05      = -1;
+  event_.hlt.rho_ecal   = -1;
+  event_.hlt.rho_hcal   = -1;
+  event_.hlt.rho_ecal05 = -1;
+  event_.hlt.rho_hcal05 = -1;  
+  
   event_.hltTag.triggers.clear();
   event_.hltTag.objects.clear();
   event_.hltTag.rho = -1;

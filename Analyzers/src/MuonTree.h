@@ -137,6 +137,12 @@ public:
   std::vector<std::string>  triggers;  
   std::vector<HLTObjCand>   objects;   
   double                    rho;
+  double                    rho05;
+  double                    rho_ecal;
+  double                    rho_hcal;
+  double                    rho_ecal05;
+  double                    rho_hcal05;
+
 
   HLTInfo(){};
   virtual ~HLTInfo(){};
