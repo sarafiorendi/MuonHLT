@@ -17,34 +17,17 @@
 #include "TLorentzVector.h"
 
 double    muonmass  = 0.10565837;
-const int nhist_iso = 50;
 std::string wpstring;  
-// old wp
-// EB 0.11 EE 0.08 HB 0.21 HE 0.22 TRK 0.09
-// new loose wp
-// EB 0.08 EE 0.06 HB 0.13 HE 0.13 TRK 0.08
 
 // define pt threshold
 float cut_pt          = 24  ; 
 float cut_pt_offline  = 27  ; 
 // define effective areas
-// 2016 menu
-float a_ecal_barrel   = 0.135;   
-float a_ecal_endcap   = 0.080;
-float a_hcal_barrel   = 0.110;
-float a_hcal_endcap   = 0.163;
 
-// define isolation thresholds
-float cut_ecal_barrel = 0;
-float cut_hcal_barrel = 0;
-float cut_ecal_endcap = 0;
-float cut_hcal_endcap = 0;
 float cut_trk         = 0;
 
-// ********************************************************
-int   which = 0; // 0 = 2015, 1 = loose 2016
-// ********************************************************
-
+std::string L3filter    = "hltL3fL1sMu22L1f0L2f10QL3Filtered24Q::REHLT";
+std::string isofilter   = "hltL3crIsoL1sMu22L1f0L2f10QL3f24QL3trkIsoFiltered0p09::HLT";
 
 bool         selectTagMuon  (MuonCand );
 bool         selectProbeMuon(MuonCand, MuonCand, TH1F* );
@@ -52,43 +35,30 @@ bool         matchMuon      (MuonCand, std::vector<HLTObjCand>, std::string);
 HLTMuonCand  matchL3        (MuonCand, std::vector<HLTMuonCand>);
 bool         matchGENMuon   (MuonCand, std::vector<GenParticleCand>);
 
-double pt_bins[12]  = { 20, 24, 27, 30, 35, 40, 45, 50, 60, 70 , 90, 150} ;
+double pt_bins[17]  = { 0, 15, 18, 20, 22, 24, 26, 28, 30, 35, 40, 50, 60, 80, 120, 300};// 1000} ;
 double eta_bins[14] = {-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4}    ;
-double iso_bins[12] = {0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.16, 0.2, 0.3, 0.6, 1}                   ;
 
 
 void readNtuplesMC(){
 
-  if (which == 0){
-	cut_ecal_barrel = 0.11    ;
-	cut_hcal_barrel = 0.21    ;
-	cut_ecal_endcap = 0.08    ;
-	cut_hcal_endcap = 0.22    ;
-	cut_trk         = 0.09    ;
-	wpstring        = "2015wp";
-  
-  }  
-  else if (which == 1){
-	cut_ecal_barrel = 0.08   ;
-	cut_hcal_barrel = 0.13   ;
-	cut_ecal_endcap = 0.06   ;
-	cut_hcal_endcap = 0.14   ;
-	cut_trk         = 0.08   ;
-	wpstring        = "loose";
-  }  
+  cut_trk         = 0.09    ;
 
-  TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_8_0_0/src/HLTrigger/Configuration/test/muonNtuple_DYToLL_ECalTune_newTrk.root","READ");
-//   TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_8_0_0/src/HLTrigger/Configuration/test/muonNtuple_DYToLL_ECalTune.root","READ");
-  std::cout << "input file: " << inputfile -> GetName() << std::endl;
+//   TFile* inputfile = TFile::Open("/afs/cern.ch/work/f/fiorendi/private/MuonHLTRegMuVtx/CMSSW_9_0_0_pre6/src/HLTrigger/Configuration/test/muonNtuple_samePtsas2016.root","READ");
+//   std::cout << "input file: " << inputfile -> GetName() << std::endl;
+  TChain* tree = new TChain("muonNtuples/muonTree");
+  for (int i = 0; i < 50; i++){
+    tree -> Add(Form("root://eoscms//eos/cms/store/group/phys_muon/fiorendi/13TeV/MC/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/crab_TkIsolation_2017_83Xsample_in900/170328_171241/0000/muonNtuple_%d.root/muonNtuples/muonTree", i));
+  }
 
-  TFile* outfile = TFile::Open(Form("efficiency_onDYToLL_MC_allPU_newTrkCfg_pt%.0f_%s.root", cut_pt, wpstring.c_str()),"RECREATE");
+  TFile* outfile = TFile::Open("efficiency_onDYToLL_TSG83X.root","RECREATE");
+//   TFile* outfile = TFile::Open("efficiency_onDYToLLRelVal_samePtAs2016.root","RECREATE");
   std::cout << "output file: " << outfile -> GetName() << std::endl;
   
-  TTree *tree = (TTree*) inputfile -> Get("muonNtuples/muonTree");
-  if (!tree) {
-    std::cout << " *** tree not found *** " << std::endl;
-    return;
-  }
+//   TTree *tree = (TTree*) inputfile -> Get("muonNtuples/muonTree");
+//   if (!tree) {
+//     std::cout << " *** tree not found *** " << std::endl;
+//     return;
+//   }
     
   TH1F* dimuon_mass             = new TH1F("dimuon_mass"            ,"dimuon_mass"          , 1500,  0, 150);
   TH1F* tagMuonPt               = new TH1F("tagMuonPt"              ,"tagMuonPt"            ,  150,  0, 150);
@@ -97,9 +67,9 @@ void readNtuplesMC(){
   TH1F* num_pt                  = new TH1F("num_pt"                 ,"num_pt"               ,  150,  0, 150);
 
 
-  TEfficiency* muonPt           = new TEfficiency("muonPt"          ,"muonPt"               ,  11, pt_bins);//18
-  TEfficiency* muonPt_barrel    = new TEfficiency("muonPt_barrel"   ,"muonPt_barrel"        ,  11, pt_bins);
-  TEfficiency* muonPt_endcap    = new TEfficiency("muonPt_endcap"   ,"muonPt_endcap"        ,  11, pt_bins);
+  TEfficiency* muonPt           = new TEfficiency("muonPt"          ,"muonPt"               ,  15, pt_bins);//18
+  TEfficiency* muonPt_barrel    = new TEfficiency("muonPt_barrel"   ,"muonPt_barrel"        ,  15, pt_bins);
+  TEfficiency* muonPt_endcap    = new TEfficiency("muonPt_endcap"   ,"muonPt_endcap"        ,  15, pt_bins);
      
   TEfficiency* muonEta          = new TEfficiency("muonEta"         ,"muonEta"              ,  13, eta_bins);
   TEfficiency* muonPhi          = new TEfficiency("muonPhi"         ,"muonPhi"              ,  20, -3.2,3.2);
@@ -107,61 +77,40 @@ void readNtuplesMC(){
   TEfficiency* nvtx             = new TEfficiency("nvtx"            , "nvtx"                ,   30,  0,  60);
   TEfficiency* nvtx_barrel      = new TEfficiency("nvtx_barrel"     , "nvtx_barrel"         ,   30,  0,  60);
   TEfficiency* nvtx_endcap      = new TEfficiency("nvtx_endcap"     , "nvtx_endcap"         ,   30,  0,  60);
+
+  TEfficiency* muonEta2016      = new TEfficiency("muonEta2016"     ,"muonEta2016"          ,  13, eta_bins);
+  TEfficiency* muonPhi2016      = new TEfficiency("muonPhi2016"     ,"muonPhi2016"          ,  20, -3.2,3.2);
+  TEfficiency* nvtx2016         = new TEfficiency("nvtx2016"        , "nvtx2016"            ,  30,  0,  60 );
+  TEfficiency* muonPt2016       = new TEfficiency("muonPt2016"      ,"muonP2016t"           ,  15,  pt_bins);//18
   
-  TEfficiency* muonIso          = new TEfficiency("muonIso"         ,"muonIso"              ,   11, iso_bins);
-  TEfficiency* muonIso_barrel   = new TEfficiency("muonIso_barrel"  ,"muonIso_barrel"       ,   11, iso_bins);
-  TEfficiency* muonIso_endcap   = new TEfficiency("muonIso_endcap"  ,"muonIso_endcap"       ,   11, iso_bins);
+  TH1F* trkIso_barrel           = new TH1F("trkIso_barrel"          ,"trkIso_barrel"        ,   200,  0,  0.2);
+  TH1F* trkIso_endcap           = new TH1F("trkIso_endcap"          ,"trkIso_endcap"        ,   200,  0,  0.2);
+  TH1F* trkIso2016_barrel       = new TH1F("trkIso2016_barrel"      ,"trkIso2016_barrel"    ,   200,  0,  0.2);
+  TH1F* trkIso2016_endcap       = new TH1F("trkIso2016_endcap"      ,"trkIso2016_endcap"    ,   200,  0,  0.2);
 
-  TH1F* ecalIso_barrel          = new TH1F("ecalIso_barrel"         ,"ecalIso_barrel"       ,   50,  0,  0.5);
-  TH1F* hcalIso_barrel          = new TH1F("hcalIso_barrel"         ,"hcalIso_barrel"       ,   50,  0,  0.5);
-  TH1F* ecalIso_endcap          = new TH1F("ecalIso_endcap"         ,"ecalIso_endcap"       ,   50,  0,  0.5);
-  TH1F* hcalIso_endcap          = new TH1F("hcalIso_endcap"         ,"hcalIso_endcap"       ,   50,  0,  0.5);
-  TH1F* trkIso_barrel           = new TH1F("trkIso_barrel"          ,"trkIso_barrel"        ,   50,  0,  0.5);
-  TH1F* trkIso_endcap           = new TH1F("trkIso_endcap"          ,"trkIso_endcap"        ,   50,  0,  0.5);
-   
-  TH2F* hcalTrk_barrel          = new TH2F("hcalTrk_barrel"         ,"hcalTrk_barrel"       ,   50,  0,  0.5, 50, 0, 0.5);
-  TH2F* ecalTrk_barrel          = new TH2F("ecalTrk_barrel"         ,"ecalTrk_barrel"       ,   50,  0,  0.5, 50, 0, 0.5);
+  TH2F* trkDeps           = new TH2F("trkDeps"          ,"trkDeps"        ,   200,  0,  20, 200, 0,20);
 
-  TEfficiency *h_ecal_iso_barrel    [nhist_iso];
-  TEfficiency *h_hcal_iso_barrel    [nhist_iso];
-  TEfficiency *h_trk_iso_barrel     [nhist_iso];
-
-  TEfficiency *h_ecal_iso_endcap    [nhist_iso];
-  TEfficiency *h_hcal_iso_endcap    [nhist_iso];
-  TEfficiency *h_trk_iso_endcap     [nhist_iso];
-
-  for (int i=0; i< nhist_iso; i++) {
-    h_ecal_iso_barrel[i] = new TEfficiency(Form("HMuonPt_barrel_ecal_iso%d",i), "", 1000, 0, 1000);
-    h_hcal_iso_barrel[i] = new TEfficiency(Form("HMuonPt_barrel_hcal_iso%d",i), "", 1000, 0, 1000);
-    h_trk_iso_barrel[i]  = new TEfficiency(Form("HMuonPt_barrel_trk_iso%d" ,i), "", 1000, 0, 1000);
-    h_ecal_iso_endcap[i] = new TEfficiency(Form("HMuonPt_endcap_ecal_iso%d",i), "", 1000, 0, 1000);
-    h_hcal_iso_endcap[i] = new TEfficiency(Form("HMuonPt_endcap_hcal_iso%d",i), "", 1000, 0, 1000);
-    h_trk_iso_endcap[i]  = new TEfficiency(Form("HMuonPt_endcap_trk_iso%d" ,i), "", 1000, 0, 1000);
-  }
-
-    
   double offlineiso04 = 100;
-  float a_ecal, a_hcal;
-  float cut_ecal, cut_hcal;
 
   MuonEvent* ev = new MuonEvent();
-  TBranch* evBranch = tree->GetBranch("event");
-  evBranch -> SetAddress(&ev);
+  tree -> SetBranchStatus("*",1);
+  tree -> SetBranchAddress( "event", &ev);
+//   TBranch* evBranch = tree->GetBranch("event");
+//   evBranch -> SetAddress(&ev);
 
-  int nentries = tree->GetEntriesFast();
+  int nentries = tree->GetEntries();
   std::cout << "Number of entries = " << nentries << std::endl;
 
   float w = 1;
   for (Int_t eventNo=0; eventNo < nentries; eventNo++)
   {
     Int_t IgetEvent   = tree   -> GetEvent(eventNo);
-//     std::cout << " ---- analyzing event: " << ev -> eventNumber << std::endl;
     
     unsigned int nmuons    = ev->muons.size();
     unsigned int nhltmuons = ev->hltmuons.size();
     if (nmuons < 2) continue;
     
-    if (!ev-> hlt.find("HLT_Mu20_v2")) continue;
+    if (!ev-> hltTag.find("HLT_IsoMu24_v4")) continue;
 
     nvtx_event -> Fill( ev -> nVtx );
 //     if ( ev -> trueNI < 28 || ev -> trueNI > 32 ) continue;
@@ -169,125 +118,86 @@ void readNtuplesMC(){
     for (int imu = 0; imu < nmuons; imu++){
       
       // select the tag muon        
-      if (! selectTagMuon(ev -> muons.at(imu)))                               continue;
-      if (! matchGENMuon (ev -> muons.at(imu), ev -> genParticles))           continue;
-      if (! matchMuon(ev -> muons.at(imu), ev -> hlt.objects, "hltL3fL1sMu16L1f0L2f10QL3Filtered20Q::REHLT")) continue;
+      if (! selectTagMuon(ev -> muons.at(imu)))                          continue;
+      if (! matchMuon(ev -> muons.at(imu), ev -> hltTag.objects, isofilter)) continue;
       tagMuonPt -> Fill(ev -> muons.at(imu).pt, w);
       
       for (int jmu = 0; jmu < nmuons; jmu++){
+        MuonCand probeMu = ev -> muons.at(jmu);
         // select the probe muon
-        if (! selectProbeMuon(ev -> muons.at(jmu), ev -> muons.at(imu), dimuon_mass)) continue;
-        if (! matchGENMuon   (ev -> muons.at(jmu), ev -> genParticles))               continue;
+        if (! selectProbeMuon(probeMu, ev -> muons.at(imu), dimuon_mass)) continue;
+//         if (! matchGENMuon   (probeMu, ev -> genParticles))               continue;
         bool foundL3         = false;
         bool pass            = false;
         bool passPt          = false;
-        bool passECal        = false;
-        bool passHCal        = false;
-        bool passTrk         = false;
+        bool pass2016        = false;
+        bool pass2016Pt      = false;
         bool isBarrel        = false;
-        bool passECalNominal = false;
-        bool passHCalNominal = false;
 
-        offlineiso04 = ev -> muons.at(jmu).chargedDep_dR04 + std::max(0.,
-                       ev -> muons.at(jmu).photonDep_dR04 + ev -> muons.at(jmu).neutralDep_dR04 - 0.5*ev -> muons.at(jmu).puPt_dR04);
-        offlineiso04 = offlineiso04 / ev -> muons.at(jmu).pt;
+        offlineiso04 = probeMu.chargedDep_dR04 + std::max(0.,
+                       probeMu.photonDep_dR04 + probeMu.neutralDep_dR04 - 0.5*probeMu.puPt_dR04);
+        offlineiso04 = offlineiso04 / probeMu.pt;
 
         if (!(offlineiso04 < 0.15)) continue;
+        if (! matchMuon(probeMu, ev -> hlt.objects, "hltL3fL1sMu22L1f0L2f10QL3Filtered24QL3pfhcalIsoRhoFilteredHB0p21HE0p22::REHLT")) continue;
 
         // to eval eficiency of the path in the menu 
-//         if (matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, "hltL3crIsoL1sMu16L1f0L2f10QL3f20QL3trkIsoFiltered0p09::REHLT")) pass = true;
+//         if (matchMuon(probeMu, ev -> hlt.objects, "hltL3crIsoL1sMu16L1f0L2f10QL3f20QL3trkIsoFiltered0p09::REHLT")) pass = true;
 
-		if (fabs(ev -> muons.at(jmu).eta) < 1.479){
-	      isBarrel = true;
-		  a_ecal   = a_ecal_barrel;
-		  a_hcal   = a_hcal_barrel;
-		  cut_ecal = cut_ecal_barrel;
-		  cut_hcal = cut_hcal_barrel;
-		}
-		else{
-		  a_ecal   = a_ecal_endcap;
-		  a_hcal   = a_hcal_endcap;
-		  cut_ecal = cut_ecal_endcap;
-		  cut_hcal = cut_hcal_endcap;
-		}
+		if (fabs(probeMu.eta) < 1.479)  isBarrel = true;
 
-
-        HLTMuonCand theL3 = matchL3(ev -> muons.at(jmu), ev -> hltmuons);
-        if (matchMuon(ev -> muons.at(jmu), ev -> hlt.objects, "hltL3fL1sMu16L1f0L2f10QL3Filtered20Q::REHLT") 
-            && theL3.pt != -1000
-            && theL3.pt > cut_pt
+        HLTMuonCand theL3 = matchL3(probeMu, ev -> hltmuons);
+//         if (matchMuon(probeMu, ev -> hlt.objects, "hltL3fL1sMu22L1f0L2f10QL3Filtered24QL3pfhcalIsoRhoFilteredHB0p21HE0p22::REHLT") 
+//      
+        if ( theL3.pt != -1000
+              && theL3.pt > cut_pt
            ) 
-          foundL3 = true;
+        foundL3 = true;
         
         if (!foundL3) continue;  
-        den_pt -> Fill( ev -> muons.at(jmu).pt);  
-
-        double hltEcalIso = max(0., theL3.ecalDep05   - a_ecal * ev -> hlt.rho ) / theL3.pt;
-        double hltHcalIso = max(0., theL3.hcalDep1    - a_hcal * ev -> hlt.rho ) / theL3.pt;
-        double hltTrkIso  = (theL3.trkDep) / theL3.pt;
         
-        if (hltEcalIso < cut_ecal && hltHcalIso < cut_hcal && hltTrkIso < cut_trk && foundL3 && ev -> muons.at(jmu).pt > cut_pt_offline  ) pass = true;
-        if (hltEcalIso < cut_ecal && hltHcalIso < cut_hcal && hltTrkIso < cut_trk && foundL3) passPt = true;
+        if (probeMu.pt < 0 || probeMu.pt > 1000) continue;
+        den_pt -> Fill( probeMu.pt);  
 
-        if (hltEcalIso < cut_ecal && foundL3) passECalNominal = true;
-        if (hltHcalIso < cut_hcal && foundL3) passHCalNominal = true;
- 
-        muonPt    -> FillWeighted( passPt, w, ev -> muons.at(jmu).pt  );
-        if (ev -> muons.at(jmu).pt > cut_pt_offline ){
-          muonEta   -> FillWeighted( pass,   w, ev -> muons.at(jmu).eta );
-          muonPhi   -> FillWeighted( pass,   w, ev -> muons.at(jmu).phi );
-          muonIso   -> FillWeighted( pass,   w, offlineiso04            );
-          nvtx      -> FillWeighted( pass,   w, ev -> nVtx              );
+        double hltTrkIso      = (theL3.trkDep) / theL3.pt;
+        double hltTrkIso2016  = (theL3.trkDep2016) / theL3.pt;
+        
+        if ( hltTrkIso < cut_trk && probeMu.pt > cut_pt_offline  ) pass = true;
+        if ( hltTrkIso < cut_trk )                                 passPt = true;
+
+        if ( hltTrkIso2016 < cut_trk && probeMu.pt > cut_pt_offline  ) pass2016 = true;
+        if ( hltTrkIso2016 < cut_trk )                                 pass2016Pt = true;
+
+        muonPt      -> Fill( passPt    , probeMu.pt  );
+        muonPt2016  -> Fill( pass2016Pt, probeMu.pt  );
+        if (probeMu.pt > cut_pt_offline ){
+          muonEta       -> Fill( pass,      probeMu.eta );
+          muonEta2016   -> Fill( pass2016,  probeMu.eta );
+          muonPhi       -> Fill( pass,      probeMu.phi );
+          muonPhi2016   -> Fill( pass2016,  probeMu.phi );
+          nvtx          -> Fill( pass,      ev -> nVtx  );
+          nvtx2016      -> Fill( pass2016,  ev -> nVtx  );
+          
+          trkDeps  -> Fill( theL3.trkDep, theL3.trkDep2016);
         }
         if (isBarrel){
-          muonPt_barrel    -> FillWeighted( passPt, w, ev -> muons.at(jmu).pt  );
-          if (ev -> muons.at(jmu).pt > cut_pt_offline ) {
-            muonIso_barrel   -> FillWeighted( pass  , w, offlineiso04             );
-            nvtx_barrel      -> FillWeighted( pass  , w, ev -> nVtx               );
-            ecalIso_barrel   -> Fill        ( hltEcalIso                          );
-            hcalIso_barrel   -> Fill        ( hltHcalIso                          );
-            trkIso_barrel    -> Fill        ( hltTrkIso                           );
-            ecalTrk_barrel   -> Fill        ( hltEcalIso, hltTrkIso               );
-            hcalTrk_barrel   -> Fill        ( hltHcalIso, hltTrkIso               );
+          muonPt_barrel    -> Fill( passPt, probeMu.pt  );
+          if (probeMu.pt > cut_pt_offline ) {
+            nvtx_barrel        -> Fill( pass  , ev -> nVtx   );
+            trkIso_barrel      -> Fill        ( hltTrkIso    );
+            trkIso2016_barrel  -> Fill        ( hltTrkIso2016);
           }
         }
         
         else{
-          muonPt_endcap    -> FillWeighted( passPt, w, ev -> muons.at(jmu).pt  );
-          if (ev -> muons.at(jmu).pt > cut_pt_offline ){
-            muonIso_endcap   -> FillWeighted( pass  , w, offlineiso04            );
-            nvtx_endcap      -> FillWeighted( pass  , w, ev -> nVtx              );
-            ecalIso_endcap   -> Fill( hltEcalIso );
-            hcalIso_endcap   -> Fill( hltHcalIso );
-            trkIso_endcap    -> Fill( hltTrkIso  );
+          muonPt_endcap    -> Fill( passPt, probeMu.pt  );
+          if (probeMu.pt > cut_pt_offline ){
+            nvtx_endcap       -> Fill( pass, ev -> nVtx);
+            trkIso_endcap     -> Fill( hltTrkIso       );
+            trkIso2016_endcap -> Fill( hltTrkIso2016   );
           }
         }
         
-        if (hltEcalIso < cut_ecal && 
-            hltHcalIso < cut_hcal &&
-            hltTrkIso  < cut_trk 
-            ) num_pt -> Fill( ev -> muons.at(jmu).pt);  
-        
-	    for (int ih=0; ih < nhist_iso; ih++) {
-	      if ( !(ev -> muons.at(jmu).pt > cut_pt_offline ) ) continue;
-          if (hltEcalIso < ih*0.01 && foundL3) passECal = true;
-          if (hltHcalIso < ih*0.01 && foundL3) passHCal = true;
-          if (hltTrkIso  < ih*0.01 && foundL3) passTrk  = true;
-          if (isBarrel){
-            h_ecal_iso_barrel[ih] -> FillWeighted( passECal, w, ev -> muons.at(jmu).pt) ;
-            if (passECalNominal) h_hcal_iso_barrel[ih] -> FillWeighted( passHCal, w, ev -> muons.at(jmu).pt) ;
-            if (passECalNominal && passHCalNominal) h_trk_iso_barrel[ih] -> FillWeighted( passTrk , w, ev -> muons.at(jmu).pt) ;
-
-          }
-          else{
-            h_ecal_iso_endcap[ih] -> FillWeighted( passECal                    , w, ev -> muons.at(jmu).pt) ;
-            if (passECalNominal) h_hcal_iso_endcap[ih] -> FillWeighted( passHCal, w, ev -> muons.at(jmu).pt) ;
-            if (passECalNominal && passHCalNominal) h_trk_iso_endcap[ih] -> FillWeighted( passTrk , w, ev -> muons.at(jmu).pt) ;
-          }
-          passECal = false;
-          passHCal = false;
-          passTrk  = false;
-        }
         
       }
       
@@ -305,44 +215,31 @@ void readNtuplesMC(){
   muonPt_barrel   -> Write();
   muonPt_endcap   -> Write();
   tagMuonPt       -> Write();
+  trkDeps         -> Write();
   
   den_pt          -> Write();
   num_pt          -> Write();
   
   muonEta         -> Write();
   muonPhi         -> Write();
+
+  muonPt2016      -> Write();
+  muonEta2016     -> Write();
+  muonPhi2016     -> Write();
+  nvtx2016        -> Write();
   
   nvtx_event      -> Write();
   nvtx            -> Write();
   nvtx_barrel     -> Write();
   nvtx_endcap     -> Write();
   
-  muonIso         -> Write();
-  muonIso_barrel  -> Write();
-  muonIso_endcap  -> Write();
-  muonIso04       -> Write();
-
-  ecalIso_barrel  -> Write();
-  hcalIso_barrel  -> Write();
-  ecalIso_endcap  -> Write();
-  hcalIso_endcap  -> Write();
-  trkIso_barrel   -> Write();
-  trkIso_endcap   -> Write();
-  ecalTrk_barrel  -> Write();
-  hcalTrk_barrel  -> Write();
+  trkIso_barrel     -> Write();
+  trkIso_endcap     -> Write();
+  trkIso2016_barrel -> Write();
+  trkIso2016_endcap -> Write();
   
 
   dimuon_mass     -> Write();
-
-  for (int i=0; i< nhist_iso; i++) {
-    h_ecal_iso_barrel[i] -> Write();
-    h_hcal_iso_barrel[i] -> Write();
-    h_trk_iso_barrel[i]  -> Write();
-    h_ecal_iso_endcap[i] -> Write();
-    h_hcal_iso_endcap[i] -> Write();
-    h_trk_iso_endcap[i]  -> Write();
-  }
-
 
   outfile         -> Close();  
   
@@ -375,7 +272,7 @@ bool matchMuon(MuonCand mu, std::vector<HLTObjCand> toc, std::string tagFilterNa
 
 bool selectTagMuon(MuonCand mu){
   
-  if (!( mu.pt         > 22  )) return false; 
+  if (!( mu.pt         > 26  )) return false; 
   if (!( fabs(mu.eta)  < 2.4 )) return false; 
   if (!( mu.isTight    == 1  )) return false; 
   
@@ -384,8 +281,7 @@ bool selectTagMuon(MuonCand mu){
                        mu.photonDep_dR04 + mu.neutralDep_dR04 - 0.5*mu.puPt_dR04);
   offlineiso04       = offlineiso04 / mu.pt;
   if (!(offlineiso04   < 0.15 )) return false;
-  
-  
+
   return true;
 }
 
