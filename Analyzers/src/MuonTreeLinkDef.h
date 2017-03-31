@@ -10,12 +10,14 @@
 #pragma link C++ class GenParticleCand+;
 #pragma link C++ class MuonCand+;
 #pragma link C++ class HLTMuonCand+;
+#pragma link C++ class HLTTkCand+;
 #pragma link C++ class L1MuonCand+;
 #pragma link C++ class HLTObjCand+;
 #pragma link C++ class HLTInfo+;
 #pragma link C++ class std::vector<GenParticleCand>+;
 #pragma link C++ class std::vector<MuonCand>+;
 #pragma link C++ class std::vector<HLTMuonCand>+;
+#pragma link C++ class std::vector<HLTTkCand>+;
 #pragma link C++ class std::vector<L1MuonCand>+;
 #pragma link C++ class std::vector<HLTObjCand>+;
 #endif

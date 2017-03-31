@@ -8,6 +8,7 @@ parser.add_argument("-d"  , "--diff"      , dest = "diff"      ,  help = "plot d
 parser.add_argument("-m"  , "--mc"        , dest = "mc"        ,  help = "comparison is mc" , default = False, action='store_true')
 parser.add_argument("-l"  , "--leg"       , dest = "leg"       ,  help = "legend labels"    , default = ''                        )
 parser.add_argument("-j"  , "--input2"    , dest = "input2"    ,  help = "input file"       , default = ''                        )
+parser.add_argument("-r"  , "--rate"      , dest = "rate"      ,  help = "rate or eff"      , default = False, action='store_true')
 
 
 
@@ -54,18 +55,21 @@ ratioPad.Draw()
 
 pt_bins  = [  0, 15, 18, 20, 22, 25, 30, 40, 50, 60, 80, 120] 
 eta_bins = [-2.4, -2.1, -1.6, -1.2, -0.9, -0.3, -0.2, 0.2, 0.3, 0.9, 1.2, 1.6, 2.1, 2.4]
-iso_bins = [0, 0.02, 0.04, 0.06, 0.08, 0.1, 0.12, 0.16, 0.2, 0.3, 0.6, 1]
 
-colorlist = [ROOT.kGreen+2, ROOT.kRed, ROOT.kAzure+1, ROOT.kViolet]
+colorlist = [ROOT.kBlack, ROOT.kRed, ROOT.kGreen+2, ROOT.kAzure+1, ROOT.kViolet]
 
 
 def doHisto(file, var, thecolor, i):
 
-  pEff1  = file.Get(var[0]  )
-
+  if i==0 and not options.rate:
+    pEff1  = file.Get(var[0] + '2016'  )
+  else: 
+    pEff1  = file.Get(var[0]  )
+#   pEff1  = file.Get(var[0]  )
+    
   pEff1.SetLineColor  (thecolor)
   pEff1.SetMarkerColor(thecolor)
-  pEff1.SetMarkerStyle(24  )
+  pEff1.SetMarkerStyle(8  )
   pEff1.SetMarkerSize(0.8)
 
   pEff1.SetTitle(";" + var[1] + ";" + var[2])
@@ -75,18 +79,23 @@ def doHisto(file, var, thecolor, i):
 
 
 
-ytitle = 'L2/GEN efficiency'
+# ytitle = 'trk isolation efficiency'
 
-variables = [
-#  numerator          # x axis title            # y title   # rebin    # x range      # y range      # pdf name                     # legend position         #y range ratio          
- ('muonPt_barrel'    , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0. , 1.01),  'efficiency_muonPt_barrel_L2',  (0.3 , 0.75, 0.18, 0.3), (0.901, 1.05 )), 
- ('muonPt_endcap'    , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0. , 1.01),  'efficiency_muonPt_endcap_L2',  (0.3 , 0.75, 0.18, 0.3), (0.901, 1.05 )), 
-#  ('muonPt_barrel'    , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.8, 1.01),  'efficiency_muonPt_barrel_L2_zoom',  (0.34 , 0.8, 0.18, 0.35), (0.901, 1.05 )), 
-#  ('muonPt_endcap'    , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.8, 1.01),  'efficiency_muonPt_endcap_L2_zoom',  (0.34 , 0.8, 0.18, 0.35), (0.901, 1.05 )), 
-#  ('muonPt_BMTF'      , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.8, 1.01),  'efficiency_muonPt_BMTF_L2'  ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
-#  ('muonPt_OMTF'      , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.3, 1.01),  'efficiency_muonPt_OMTF_L2'  ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
-#  ('muonPt_EMTF'      , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.2, 1.01),  'efficiency_muonPt_EMTF_L2'  ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
- ('muonEta'          , 'muon #eta '              , ytitle,   eta_bins , ( -2.4 , 2.4), (0.2 , 1.01),  'efficiency_muonEta_L2'      ,  (0.3 , 0.6, 0.18, 0.32),  (0.9  , 1.05  )),
+if (options.rate):
+  ytitle = 'fake rate'
+  variables = [
+  #  numerator          # x axis title            # y title   # rebin    # x range      # y range      # pdf name                     # legend position         #y range ratio          
+   ('muonPt'           , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0    , 150 ), (0. , 0.1),  'rate_muonPt'   ,  (0.3 , 0.75, 0.75, 0.88), (0.901, 1.05 )), 
+   ('muonEta'          , 'muon #eta '              , ytitle,   eta_bins , ( -2.4  , 2.4 ), (0. , 0.1),  'rate_muonEta'  ,  (0.2 , 0.4, 0.75, 0.88),  (0.9  , 1.05  )),
+]
+else:
+#   ytitle = 'tracks iter0/L1 efficiency'
+  ytitle = 'TkMu/L1 efficiency'
+
+  variables = [
+   ('muonPt'           , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0    , 150 ), (0. , 1.01),  'efficiency_muonPt'   ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
+   ('muonEta'          , 'muon #eta '              , ytitle,   eta_bins , ( -2.4  , 2.4 ), (0. , 1.01),  'efficiency_muonEta'  ,  (0.2 , 0.4, 0.18, 0.32),  (0.9  , 1.05  )),
+   ('muonPhi'          , 'muon #phi '              , ytitle,   1        , ( -3.14 , 3.14), (0. , 1.01),  'efficiency_muonPhi'  ,  (0.3 , 0.6, 0.18, 0.32),  (0.9  , 1.05  )),
 ] 
 
 
@@ -101,7 +110,7 @@ for var in variables:
     pEff1 = doHisto(ifile , var, colorlist[i], i)
 
     stackPad.cd()
-    if (i == 0):
+    if (i == 0 ):
       pEff1.Draw('AP')
       c.Update()
       c.Modified()
@@ -145,7 +154,7 @@ for var in variables:
 
   gPad.SetGridx(True)
   gPad.SetGridy(True)
-  c.SaveAs("" +  var[6] + "_veryDisplaced_displacedMuonReco.pdf")
+  c.SaveAs("" +  var[6] + "_TkMuEff_RelVal_iter0_CATheta.pdf")
 
 
 

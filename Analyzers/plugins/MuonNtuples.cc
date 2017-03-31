@@ -76,7 +76,9 @@ class MuonNtuples : public edm::EDAnalyzer {
   void fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
                     const edm::Event   &,
                     bool isL3           ,
-                    bool isTk
+                    bool isTk           ,
+                    bool is2016         ,
+                    bool isATS
                    );
 
   void fillL1Muons(const edm::Handle<l1t::MuonBxCollection> &,
@@ -84,6 +86,12 @@ class MuonNtuples : public edm::EDAnalyzer {
                    );
 
   void MonteCarloStudies(const edm::Event&);
+
+  void fillHltTracks(const edm::Handle<reco::TrackCollection> & ,
+                     const edm::Event               & , 
+                     bool  ,// is 2016
+                     bool   // is high purity
+                    );
   
 
 //   virtual void endEvent();
@@ -114,9 +122,26 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::EDGetTokenT<l1t::MuonBxCollection> l1candToken_; 
   edm::InputTag tkMucandTag_;
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> tkMucandToken_; 
+  edm::InputTag tkMucandTag2016_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> tkMucandToken2016_; 
+  edm::InputTag tkMucandTagATS_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> tkMucandTokenATS_; 
+
+  edm::InputTag tkCands1Tag2016_;
+  edm::EDGetTokenT<reco::TrackCollection> tkCands1Token2016_; 
+  edm::InputTag tkCands1Tag2017_;
+  edm::EDGetTokenT<reco::TrackCollection> tkCands1Token2017_; 
+  edm::InputTag tkCandsHPTag2016_;
+  edm::EDGetTokenT<reco::TrackCollection> tkCandsHPToken2016_; 
+  edm::InputTag tkCandsHPTag2017_;
+  edm::EDGetTokenT<reco::TrackCollection> tkCandsHPToken2017_; 
+
+
 
   edm::InputTag chargedDepTag_;
   edm::EDGetTokenT<reco::IsoDepositMap> chargedDepToken_;
+  edm::InputTag chargedDep2016Tag_;
+  edm::EDGetTokenT<reco::IsoDepositMap> chargedDep2016Token_;
   edm::InputTag neutralDepTag_;
   edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralDepToken_;
   edm::InputTag photonsDepTag_;
@@ -188,9 +213,25 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
     l1candToken_            (consumes<l1t::MuonBxCollection>(l1candTag_)),
   tkMucandTag_              (cfg.getUntrackedParameter<edm::InputTag>("TkMuCandidates")),
     tkMucandToken_            (consumes<reco::RecoChargedCandidateCollection>(tkMucandTag_)),
+  tkMucandTag2016_              (cfg.getUntrackedParameter<edm::InputTag>("TkMuCandidates2016")),
+    tkMucandToken2016_            (consumes<reco::RecoChargedCandidateCollection>(tkMucandTag2016_)),
+  tkMucandTagATS_              (cfg.getUntrackedParameter<edm::InputTag>("TkMuCandidatesATS")),
+    tkMucandTokenATS_            (consumes<reco::RecoChargedCandidateCollection>(tkMucandTagATS_)),
+
+  tkCands1Tag2016_              (cfg.getUntrackedParameter<edm::InputTag>("TkCand12016")),
+    tkCands1Token2016_            (consumes<reco::TrackCollection>(tkCands1Tag2016_)),
+  tkCands1Tag2017_              (cfg.getUntrackedParameter<edm::InputTag>("TkCand12017")),
+    tkCands1Token2017_            (consumes<reco::TrackCollection>(tkCands1Tag2017_)),
+  tkCandsHPTag2016_            (cfg.getUntrackedParameter<edm::InputTag>("HPTkCand12016")),
+    tkCandsHPToken2016_          (consumes<reco::TrackCollection>(tkCandsHPTag2016_)),
+  tkCandsHPTag2017_            (cfg.getUntrackedParameter<edm::InputTag>("HPTkCand12017")),
+    tkCandsHPToken2017_          (consumes<reco::TrackCollection>(tkCandsHPTag2017_)),
+
 
   chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
     chargedDepToken_        (consumes<reco::IsoDepositMap>(chargedDepTag_)), 
+  chargedDep2016Tag_      (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit2016")), 
+    chargedDep2016Token_    (consumes<reco::IsoDepositMap>(chargedDep2016Tag_)), 
   neutralDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("NeutralDeposit")), 
     neutralDepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(neutralDepTag_)), 
   photonsDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("PhotonsDeposit")), 
@@ -346,14 +387,14 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
  // Handle the online muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
   if (event.getByToken(l3candToken_, l3cands))
-    fillHltMuons(l3cands, event, true, false);
+    fillHltMuons(l3cands, event, true, false, false, false);
   else
     edm::LogWarning("") << "Online muon collection not found !!!";
 
   // Handle the online muon collection and fill L2 muons
   edm::Handle<reco::RecoChargedCandidateCollection> l2cands;
   if (event.getByToken(l2candToken_, l2cands))
-    fillHltMuons(l2cands, event, false, false);
+    fillHltMuons(l2cands, event, false, false, false, false);
   else
     edm::LogWarning("") << "Online L2 muon collection not found !!!";
 
@@ -367,9 +408,52 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   // Handle the online tk muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> tkMucands;
   if (event.getByToken(tkMucandToken_, tkMucands))
-    fillHltMuons(tkMucands, event, false, true);
+    fillHltMuons(tkMucands, event, false, true, false, false);
   else
     edm::LogWarning("") << "Online tracker muon collection not found !!!";
+
+  // Handle the online tk muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> tkMucands2016;
+  if (event.getByToken(tkMucandToken2016_, tkMucands2016))
+    fillHltMuons(tkMucands2016, event, false, true, true, false);
+  else
+    edm::LogWarning("") << "Online tracker muon collection 2016 not found !!!";
+
+  // Handle the online tk muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> tkMucandsATS;
+  if (event.getByToken(tkMucandTokenATS_, tkMucandsATS))
+    fillHltMuons(tkMucandsATS, event, false, true, false, true);
+  else
+    edm::LogWarning("") << "Online tracker muon collection ATS not found !!!";
+
+
+
+  // Handle the tracks
+  edm::Handle<reco::TrackCollection> tkCands1_2016;
+  if (event.getByToken(tkCands1Token2016_, tkCands1_2016))
+    fillHltTracks(tkCands1_2016, event, true, false);
+  else
+    edm::LogWarning("") << "Online tracks 2016 not found !!!";
+
+  // Handle the tracks
+  edm::Handle<reco::TrackCollection> tkCands1_2017;
+  if (event.getByToken(tkCands1Token2017_, tkCands1_2017))
+    fillHltTracks(tkCands1_2017, event, false, false);
+  else
+    edm::LogWarning("") << "Online tracks 2017 not found !!!";
+
+  // Handle the tracks
+  edm::Handle<reco::TrackCollection> tkCandsHP_2017;
+  if (event.getByToken(tkCandsHPToken2017_, tkCandsHP_2017))
+    fillHltTracks(tkCandsHP_2017, event, false, true);
+  else
+    edm::LogWarning("") << "Online HP tracks 2017 not found !!!";
+  // Handle the tracks
+  edm::Handle<reco::TrackCollection> tkCandsHP_2016;
+  if (event.getByToken(tkCandsHPToken2016_, tkCandsHP_2016))
+    fillHltTracks(tkCandsHP_2016, event, true, true);
+  else
+    edm::LogWarning("") << "Online HP tracks 2016 not found !!!";
 
 
   // endEvent();
@@ -564,11 +648,14 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
 void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateCollection> & l3cands ,
                                const edm::Event                                        & event   , 
                                bool isL3                                                         ,
-                               bool isTk
+                               bool isTk                                                         ,
+                               bool is2016                                                       ,
+                               bool isATS
                                )
 {
 
   edm::Handle<reco::IsoDepositMap> trkDepMap;
+  edm::Handle<reco::IsoDepositMap> trkDep2016Map;
   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap;
   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap;
 
@@ -588,27 +675,34 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     theL3Mu.phi     = candref -> phi();
     theL3Mu.charge  = candref -> charge();
 
+//     std::cout << candref -> numberOfValidPixelHits() << std::endl;
+
+
     reco::TrackRef trkmu = candref->track();
     theL3Mu.trkpt   = trkmu -> pt();
 
-    if (isL3                                              && 
-        event.getByToken(chargedDepToken_, trkDepMap)     &&
-        event.getByToken(neutralDepToken_, neutralDepMap) &&
+    if (isL3                                                  && 
+        event.getByToken(chargedDep2016Token_, trkDep2016Map) &&
+        event.getByToken(chargedDepToken_, trkDepMap)         &&
+        event.getByToken(neutralDepToken_, neutralDepMap)     &&
         event.getByToken(photonsDepToken_, photonsDepMap) ){
         
       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralDepMap).find( candref );
       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsDepMap).find( candref );
-      reco::IsoDeposit theTkIsolation = (*trkDepMap)[candref];
+      reco::IsoDeposit theTkIsolation     = (*trkDepMap)[candref];
+      reco::IsoDeposit theTkIsolation2016 = (*trkDep2016Map)[candref];
 
-      theL3Mu.hcalDep = hcal_mapi->val;
-      theL3Mu.ecalDep = ecal_mapi->val; 
-      theL3Mu.trkDep  = theTkIsolation.depositWithin(0.3);
+      theL3Mu.hcalDep    = hcal_mapi->val;
+      theL3Mu.ecalDep    = ecal_mapi->val; 
+      theL3Mu.trkDep     = theTkIsolation.depositWithin(0.3);
+      theL3Mu.trkDep2016 = theTkIsolation2016.depositWithin(0.3);
     }
     else {
 //       edm::LogWarning("") << "Online PF cluster collection not found !!!";
-      theL3Mu.hcalDep =  -9999 ;
-      theL3Mu.ecalDep =  -9999 ; 
-      theL3Mu.trkDep  =  -9999 ;
+      theL3Mu.hcalDep     =  -9999 ;
+      theL3Mu.ecalDep     =  -9999 ; 
+      theL3Mu.trkDep      =  -9999 ;
+      theL3Mu.trkDep2016  =  -9999 ;
     }
 
 
@@ -640,7 +734,12 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
 
     if       (isL3  && !isTk)  event_.hltmuons.push_back(theL3Mu);
     else if  (!isL3 && !isTk)  event_.L2muons .push_back(theL3Mu);
-    else if  (!isL3 &&  isTk)  event_.tkmuons .push_back(theL3Mu);
+    else if  (!isL3 &&  isTk && !is2016 && !isATS )  event_.tkmuons .push_back(theL3Mu);
+    else if  (!isL3 &&  isTk && is2016            )  event_.tkmuons2016 .push_back(theL3Mu);
+    else if  (!isL3 &&  isTk && !is2016 && isATS  )  event_.tkmuonsATS  .push_back(theL3Mu);
+
+
+
   }
 }
 
@@ -690,6 +789,11 @@ void MuonNtuples::beginEvent()
   event_.L2muons.clear();
   event_.L1muons.clear();
   event_.tkmuons.clear();
+  event_.tkmuons2016.clear();
+  event_.tk2016.clear();
+  event_.tk2017.clear();
+  event_.hptk2016.clear();
+  event_.hptk2017.clear();
   
   for (unsigned int ix=0; ix<3; ++ix) {
     event_.primaryVertex[ix] = 0.;
@@ -704,6 +808,39 @@ void MuonNtuples::beginEvent()
   event_.instLumi   = -1;
   
   nGoodVtx = 0; 
+}
+
+
+
+
+// -------------------------
+// ---------------------------------------------------------------------
+void MuonNtuples::fillHltTracks(const edm::Handle<reco::TrackCollection> & tkcands ,
+                                const edm::Event               & event   , 
+                                bool is2016,
+                                bool isHP
+                               )
+{
+
+  for( unsigned int il3 = 0; il3 < tkcands->size(); ++il3) 
+  {
+    HLTTkCand theTk;
+    reco::TrackRef candref(tkcands,il3) ;                                                
+
+    theTk.pt      = candref -> pt();
+    theTk.eta     = candref -> eta();
+    theTk.phi     = candref -> phi();
+    theTk.charge  = candref -> charge();
+    
+    if (!isHP){
+      if (is2016) event_.tk2016.push_back(theTk);
+      else        event_.tk2017.push_back(theTk);
+    }
+    else{
+      if (is2016) event_.hptk2016.push_back(theTk);
+      else        event_.hptk2017.push_back(theTk);
+    }
+  }
 }
 
 

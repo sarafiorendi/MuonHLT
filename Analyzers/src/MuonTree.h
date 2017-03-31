@@ -79,6 +79,7 @@ public:
   
   Float_t ecalDep;
   Float_t hcalDep;
+  Float_t trkDep2016;
   Float_t trkDep;
 
   Float_t ecalDep05;
@@ -91,6 +92,19 @@ public:
 
   ClassDef(HLTMuonCand,1)
 
+};
+
+class HLTTkCand {
+public:
+
+  Float_t pt;           
+  Float_t eta;          
+  Float_t phi;          
+  Int_t   charge;         // pt of the track of the hlt muon [GeV]
+  
+  HLTTkCand(){};
+  virtual ~HLTTkCand(){};
+  ClassDef(HLTTkCand,1)
 };
 
 
@@ -178,11 +192,18 @@ public:
   std::vector <GenParticleCand> genParticles; 
   std::vector <MuonCand>        muons;         
   std::vector <HLTMuonCand>     tkmuons;      
+  std::vector <HLTMuonCand>     tkmuons2016;      
+  std::vector <HLTMuonCand>     tkmuonsATS;      
   std::vector <HLTMuonCand>     hltmuons;      
   std::vector <HLTMuonCand>     L2muons;      
   std::vector <L1MuonCand>      L1muons;      
   HLTInfo                       hlt;           
-  HLTInfo                       hltTag;            
+  HLTInfo                       hltTag;      
+  
+  std::vector <HLTTkCand>     tk2016;      
+  std::vector <HLTTkCand>     tk2017;      
+  std::vector <HLTTkCand>     hptk2016;      
+  std::vector <HLTTkCand>     hptk2017;      
 
   MuonEvent(){};
   virtual ~MuonEvent(){};
