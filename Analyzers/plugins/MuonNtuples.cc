@@ -133,6 +133,12 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralDepToken1_;
   edm::InputTag photonsDepTag1_;
   edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> photonsDepToken1_;
+
+  edm::InputTag neutralM2DepTag_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralM2DepToken_;
+  edm::InputTag photonsMFDepTag_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> photonsMFDepToken_;
+
   
   edm::InputTag rhoCorrectionTag_;
   edm::EDGetTokenT<double> rhoCorrectionToken_;
@@ -141,15 +147,26 @@ class MuonNtuples : public edm::EDAnalyzer {
  
   edm::InputTag rhoCorrectionOnline05Tag_;
   edm::EDGetTokenT<double> rhoCorrectionOnline05Token_;
+  edm::InputTag rhoCorrectionM2Tag_;
+  edm::EDGetTokenT<double> rhoCorrectionM2Token_;
+  edm::InputTag rhoCorrectionMFTag_;
+  edm::EDGetTokenT<double> rhoCorrectionMFToken_;
+  edm::InputTag rhoCorrectionM2MFTag_;
+  edm::EDGetTokenT<double> rhoCorrectionM2MFToken_;
+
   edm::InputTag rhoCorrectionECALTag_;
   edm::EDGetTokenT<double> rhoCorrectionECALToken_;
+  edm::InputTag rhoCorrectionECALMFTag_;
+  edm::EDGetTokenT<double> rhoCorrectionECALMFToken_;
   edm::InputTag rhoCorrectionHCALTag_;
   edm::EDGetTokenT<double> rhoCorrectionHCALToken_;
-
+  edm::InputTag rhoCorrectionHCALM2Tag_;
+  edm::EDGetTokenT<double> rhoCorrectionHCALM2Token_;
   edm::InputTag rhoCorrectionECAL05Tag_;
   edm::EDGetTokenT<double> rhoCorrectionECAL05Token_;
   edm::InputTag rhoCorrectionHCAL05Tag_;
   edm::EDGetTokenT<double> rhoCorrectionHCAL05Token_;
+
   edm::InputTag offlineECalPFTag03_;
   edm::EDGetTokenT<edm::ValueMap<float>> offlineECalPFToken03_;
   edm::InputTag offlineHCalPFTag03_;
@@ -221,6 +238,11 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
   photonsDepTag1_         (cfg.getUntrackedParameter<edm::InputTag>("PhotonsDeposit1" )), 
     photonsDepToken1_       (consumes<reco::RecoChargedCandidateIsolationMap>(photonsDepTag1_)),
 
+  neutralM2DepTag_          (cfg.getUntrackedParameter<edm::InputTag>("NeutralM2Deposit")), 
+    neutralM2DepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(neutralM2DepTag_)), 
+  photonsMFDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("PhotonsMFDeposit")), 
+    photonsMFDepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(photonsMFDepTag_)), 
+
   rhoCorrectionTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOnline")), 
     rhoCorrectionToken_     (consumes<double>(rhoCorrectionTag_)), 
   rhoCorrectionOfflineTag_(cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOffline")), 
@@ -228,10 +250,21 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
 
   rhoCorrectionOnline05Tag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOnline05")),
     rhoCorrectionOnline05Token_     (consumes<double>(rhoCorrectionOnline05Tag_)),
+  rhoCorrectionM2Tag_         (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionM2")),
+    rhoCorrectionM2Token_       (consumes<double>(rhoCorrectionM2Tag_)),
+  rhoCorrectionMFTag_         (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionMF")),
+    rhoCorrectionMFToken_       (consumes<double>(rhoCorrectionMFTag_)),
+  rhoCorrectionM2MFTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionM2MF")),
+    rhoCorrectionM2MFToken_     (consumes<double>(rhoCorrectionM2MFTag_)),
+
   rhoCorrectionECALTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECAL")),
     rhoCorrectionECALToken_     (consumes<double>(rhoCorrectionECALTag_)),
+  rhoCorrectionECALMFTag_     (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECALMF")),
+    rhoCorrectionECALMFToken_   (consumes<double>(rhoCorrectionECALMFTag_)),
   rhoCorrectionHCALTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCAL")),
     rhoCorrectionHCALToken_     (consumes<double>(rhoCorrectionHCALTag_)),
+  rhoCorrectionHCALM2Tag_     (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCALM2")),
+    rhoCorrectionHCALM2Token_   (consumes<double>(rhoCorrectionHCALTag_)),
   rhoCorrectionECAL05Tag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECAL05")),
     rhoCorrectionECAL05Token_     (consumes<double>(rhoCorrectionECAL05Tag_)),
   rhoCorrectionHCAL05Tag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCAL05")),
@@ -532,16 +565,37 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
     if (event.getByToken(rhoCorrectionOnline05Token_, hltRhoCollection05) && hltRhoCollection05.isValid()){
       event_.hlt   .rho05 = *(hltRhoCollection05.product());
     }
+
+    edm::Handle <double>  hltRhoCollectionM2;
+    if (event.getByToken(rhoCorrectionM2Token_, hltRhoCollectionM2) && hltRhoCollectionM2.isValid()){
+       event_.hlt   .rhoM2 = *(hltRhoCollectionM2.product());
+    } 
+    edm::Handle <double>  hltRhoCollectionMF;
+    if (event.getByToken(rhoCorrectionMFToken_, hltRhoCollectionMF) && hltRhoCollectionMF.isValid()){
+       event_.hlt   .rhoMF = *(hltRhoCollectionMF.product());
+    } 
+    edm::Handle <double>  hltRhoCollectionM2MF;
+    if (event.getByToken(rhoCorrectionM2MFToken_, hltRhoCollectionM2MF) && hltRhoCollectionM2MF.isValid()){
+       event_.hlt   .rhoM2MF = *(hltRhoCollectionM2MF.product());
+    } 
   
     // rho ecal
     edm::Handle <double>  hltRhoECALCollection;
     if (event.getByToken(rhoCorrectionECALToken_, hltRhoECALCollection) && hltRhoECALCollection.isValid()){
       event_.hlt   .rho_ecal = *(hltRhoECALCollection.product());
     }
+    edm::Handle <double>  hltRhoECALMFCollection;
+    if (event.getByToken(rhoCorrectionECALMFToken_, hltRhoECALMFCollection) && hltRhoECALMFCollection.isValid()){
+      event_.hlt   .rho_ecalMF = *(hltRhoECALMFCollection.product());
+    }
     // rho hcal
     edm::Handle <double>  hltRhoHCALCollection;
     if (event.getByToken(rhoCorrectionHCALToken_, hltRhoHCALCollection) && hltRhoHCALCollection.isValid()){
       event_.hlt   .rho_hcal = *(hltRhoHCALCollection.product());
+    }
+    edm::Handle <double>  hltRhoHCALM2Collection;
+    if (event.getByToken(rhoCorrectionHCALM2Token_, hltRhoHCALM2Collection) && hltRhoHCALM2Collection.isValid()){
+      event_.hlt   .rho_hcalM2 = *(hltRhoHCALM2Collection.product());
     }
   
     // rho ecal ( eta up to 5.0 )
@@ -656,6 +710,8 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap1 ;
   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap1 ;
 
+  edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralM2DepMap;
+  edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsMFDepMap;
 
   for( unsigned int il3 = 0; il3 < l3cands->size(); ++il3) 
   {
@@ -671,7 +727,6 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     theL3Mu.trkpt   = trkmu -> pt();
 
     if (isL3                                                  && 
-        event.getByToken(chargedDep2016Token_, trkDep2016Map) &&
         event.getByToken(chargedDepToken_, trkDepMap)         &&
         event.getByToken(neutralDepToken_, neutralDepMap)     &&
         event.getByToken(photonsDepToken_, photonsDepMap) ){
@@ -679,12 +734,10 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralDepMap).find( candref );
       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsDepMap).find( candref );
       reco::IsoDeposit theTkIsolation = (*trkDepMap)[candref];
-      reco::IsoDeposit theTkIsolation2016 = (*trkDep2016Map)[candref];
 
       theL3Mu.hcalDep    = hcal_mapi->val;
       theL3Mu.ecalDep    = ecal_mapi->val; 
       theL3Mu.trkDep     = theTkIsolation.depositWithin(0.3);
-      theL3Mu.trkDep2016 = theTkIsolation2016.depositWithin(0.3);
     }
     else {
 //       edm::LogWarning("") << "Online PF cluster collection not found !!!";
@@ -693,6 +746,24 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
       theL3Mu.trkDep      =  -9999 ;
       theL3Mu.trkDep2016  =  -9999 ;
     }
+
+    if (isL3 && event.getByToken(neutralM2DepToken_, neutralM2DepMap) ){
+      reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralM2DepMap).find( candref );
+      theL3Mu.hcalM2Dep    = hcal_mapi->val;
+    }
+    else    theL3Mu.hcalM2Dep    = -9999;
+
+    if (isL3 && event.getByToken(photonsMFDepToken_, photonsMFDepMap) ){
+      reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsMFDepMap).find( candref );
+      theL3Mu.ecalMFDep    = ecal_mapi->val;
+    }
+    else    theL3Mu.ecalMFDep    = -9999;
+
+    if (isL3 && event.getByToken(chargedDep2016Token_, trkDep2016Map) ){
+        reco::IsoDeposit theTkIsolation2016 = (*trkDep2016Map)[candref];
+        theL3Mu.trkDep2016 = theTkIsolation2016.depositWithin(0.3);
+    }
+    else    theL3Mu.trkDep2016    = -9999;
 
 
     // fill deposits with veto cones
@@ -763,8 +834,13 @@ void MuonNtuples::beginEvent()
   event_.hlt.objects.clear();
   event_.hlt.rho        = -1;
   event_.hlt.rho05      = -1;
+  event_.hlt.rhoM2      = -1;
+  event_.hlt.rhoMF      = -1;
+  event_.hlt.rhoM2MF    = -1;
   event_.hlt.rho_ecal   = -1;
   event_.hlt.rho_hcal   = -1;
+  event_.hlt.rho_ecalMF = -1;
+  event_.hlt.rho_hcalM2 = -1;
   event_.hlt.rho_ecal05 = -1;
   event_.hlt.rho_hcal05 = -1;  
   

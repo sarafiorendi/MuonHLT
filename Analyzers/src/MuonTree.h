@@ -78,7 +78,9 @@ public:
   Int_t   charge;         // pt of the track of the hlt muon [GeV]
   
   Float_t ecalDep;
+  Float_t ecalMFDep;
   Float_t hcalDep;
+  Float_t hcalM2Dep;
   Float_t trkDep2016;
   Float_t trkDep;
 
@@ -136,10 +138,15 @@ class HLTInfo {
 public:
   std::vector<std::string>  triggers;  
   std::vector<HLTObjCand>   objects;   
-  double                    rho;
+  double                    rho;     // ecal+hcal(m3)
   double                    rho05;
+  double                    rhoM2;   // ecal+hcal(m2)
+  double                    rhoMF;   // ecal(mf full)+hcal
+  double                    rhoM2MF; // ecal(mf full)+hcal(m2)
   double                    rho_ecal;
+  double                    rho_ecalMF;
   double                    rho_hcal;
+  double                    rho_hcalM2;
   double                    rho_ecal05;
   double                    rho_hcal05;
 
