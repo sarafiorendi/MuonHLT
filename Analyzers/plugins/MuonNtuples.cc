@@ -420,11 +420,11 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     edm::LogWarning("") << "Online muon collection not found !!!";
 
  // Handle the online muon collection and fill online muons
-//   edm::Handle<reco::RecoChargedCandidateCollection> iterl3cands;
-//   if (event.getByToken(iterl3candToken_, iterl3cands))
-//     fillHltMuons(iterl3cands, event, false, true, false);//isL3, isIterL3,  isTk,  
-//   else
-//     edm::LogWarning("") << "Online iter L3 collection not found !!!";
+  edm::Handle<reco::RecoChargedCandidateCollection> iterl3cands;
+  if (event.getByToken(iterl3candToken_, iterl3cands))
+    fillHltMuons(iterl3cands, event, false, true, false);//isL3, isIterL3,  isTk,  
+  else
+    edm::LogWarning("") << "Online iter L3 collection not found !!!";
 // 
 //   // Handle the online tk muon collection and fill online muons
 //   edm::Handle<reco::RecoChargedCandidateCollection> tkMucands;

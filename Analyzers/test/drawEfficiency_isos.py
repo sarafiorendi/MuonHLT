@@ -60,11 +60,7 @@ colorlist = [ROOT.kBlack, ROOT.kRed, ROOT.kGreen+2, ROOT.kAzure+1, ROOT.kViolet]
 
 def doHisto(file, var, thecolor, i):
 
-  if i==0:
-    pEff1  = file.Get(var[0] + '2016'  )
-  else: 
-    pEff1  = file.Get(var[0]  )
-#   pEff1  = file.Get(var[0]  )
+  pEff1  = file.Get(var[0]  )
     
   pEff1.SetLineColor  (thecolor)
   pEff1.SetMarkerColor(thecolor)
@@ -79,7 +75,7 @@ def doHisto(file, var, thecolor, i):
 
 
 # ytitle = 'TkMu/L1 efficiency'
-ytitle = 'trk isolation efficiency'
+ytitle = 'L3/L1 efficiency'
 
 variables = [
 #  numerator          # x axis title            # y title   # rebin    # x range      # y range      # pdf name                     # legend position         #y range ratio          
@@ -90,9 +86,10 @@ variables = [
 #  ('muonPt_BMTF'      , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.8, 1.01),  'efficiency_muonPt_BMTF_L2'  ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
 #  ('muonPt_OMTF'      , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.3, 1.01),  'efficiency_muonPt_OMTF_L2'  ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
 #  ('muonPt_EMTF'      , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0   , 150), (0.2, 1.01),  'efficiency_muonPt_EMTF_L2'  ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
- ('muonPt'           , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0    , 150 ), (0.85 , 1.01),  'efficiency_muonPt'   ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
+ ('muonPt'           , 'muon p_{T} [GeV]'        , ytitle,   pt_bins  , (  0    , 150 ), (0.00 , 1.01), 'efficiency_muonPt'   ,  (0.3 , 0.75, 0.18, 0.35), (0.901, 1.05 )), 
  ('muonEta'          , 'muon #eta '              , ytitle,   eta_bins , ( -2.4  , 2.4 ), (0.95 , 1.0),  'efficiency_muonEta'  ,  (0.3 , 0.6, 0.18, 0.32),  (0.9  , 1.05  )),
  ('muonPhi'          , 'muon #phi '              , ytitle,   1        , ( -3.14 , 3.14), (0.95 , 1.0),  'efficiency_muonPhi'  ,  (0.3 , 0.6, 0.18, 0.32),  (0.9  , 1.05  )),
+ ('nvtx'             , '# offline vertices '     , ytitle,   1        , ( 20 , 60 )    , (0.90 , 1.0),  'efficiency_muonNvtx'  ,  (0.3 , 0.6, 0.18, 0.32),  (0.9  , 1.05  )),
 ] 
 
 
@@ -151,7 +148,7 @@ for var in variables:
 
   gPad.SetGridx(True)
   gPad.SetGridy(True)
-  c.SaveAs("" +  var[6] + "_TkIso2017.pdf")
+  c.SaveAs("" +  var[6] + "_IterL3v12Only.pdf")
 
 
 
