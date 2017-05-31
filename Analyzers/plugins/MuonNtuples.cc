@@ -425,13 +425,13 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     fillHltMuons(iterl3cands, event, false, true, false);//isL3, isIterL3,  isTk,  
   else
     edm::LogWarning("") << "Online iter L3 collection not found !!!";
-// 
-//   // Handle the online tk muon collection and fill online muons
-//   edm::Handle<reco::RecoChargedCandidateCollection> tkMucands;
-//   if (event.getByToken(tkMucandToken_, tkMucands))
-//     fillHltMuons(tkMucands, event, false, false, true);//isL3, isIterL3,  isTk, 
-//   else
-//     edm::LogWarning("") << "Online tracker muon collection not found !!!";
+
+  // Handle the online tk muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> tkMucands;
+  if (event.getByToken(tkMucandToken_, tkMucands))
+    fillHltMuons(tkMucands, event, false, false, true);//isL3, isIterL3,  isTk, 
+  else
+    edm::LogWarning("") << "Online tracker muon collection not found !!!";
 
   // Handle the online muon collection and fill L2 muons
   edm::Handle<reco::RecoChargedCandidateCollection> l2cands;
@@ -521,7 +521,7 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
            pathName.find ("HLT_TkMu5"  ) !=std::string::npos ||
            pathName.find ("HLT_IsoTkMu") !=std::string::npos ||
            pathName.find ("HLT_Mu17"   ) !=std::string::npos ||
-           pathName.find ("HLT_Mu8_T"  ) !=std::string::npos
+           pathName.find ("HLT_Mu8_"  ) !=std::string::npos
       ){
         if (isTag) event_.hltTag.triggers.push_back(pathName);
         else       event_.hlt   .triggers.push_back(pathName);
@@ -536,7 +536,7 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
     std::string filterTag = triggerEvent->filterTag(iFilter).encode();
 
     if ( ( filterTag.find ("sMu22"     ) !=std::string::npos ||
-           filterTag.find ("sMu25"     ) !=std::string::npos
+           filterTag.find ("sMu"       ) !=std::string::npos
 //            filterTag.find ("DoubleMu"  ) !=std::string::npos ||
 //            filterTag.find ("DiMuonGlb" ) !=std::string::npos
            ) &&
@@ -653,6 +653,7 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
     muon::isTightMuon ( (*mu1), pv ) ? theMu.isTight  = 1 : theMu.isTight  = 0;
     muon::isLooseMuon ( (*mu1)     ) ? theMu.isLoose  = 1 : theMu.isLoose  = 0;
     muon::isMediumMuon( (*mu1)     ) ? theMu.isMedium = 1 : theMu.isMedium = 0;
+    muon::isSoftMuon  ( (*mu1), pv ) ? theMu.isSoft   = 1 : theMu.isSoft   = 0;
     
     theMu.chargedDep_dR03 = mu1->pfIsolationR03().sumChargedHadronPt ;
     theMu.neutralDep_dR03 = mu1->pfIsolationR03().sumNeutralHadronEt ;
@@ -739,6 +740,8 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     theL3Mu.eta     = candref -> eta();
     theL3Mu.phi     = candref -> phi();
     theL3Mu.charge  = candref -> charge();
+    
+    theL3Mu.dz = candref -> vz();
 
     reco::TrackRef trkmu = candref->track();
     theL3Mu.trkpt   = trkmu -> pt();

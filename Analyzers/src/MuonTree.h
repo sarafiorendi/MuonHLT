@@ -42,6 +42,7 @@ public:
   Int_t   isLoose;
   Int_t   isMedium;
   Int_t   isTight;
+  Int_t   isSoft;
   
   Float_t chargedDep_dR03;
   Float_t neutralDep_dR03;
@@ -88,6 +89,8 @@ public:
   Float_t hcalDep05;
   Float_t ecalDep1;
   Float_t hcalDep1;
+  
+  Float_t dz;
 
   HLTMuonCand(){};
   virtual ~HLTMuonCand(){};
