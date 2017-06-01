@@ -6,8 +6,8 @@ cmsenv
 git cms-addpkg HLTrigger/Configuration    
 git clone git@github.com:sarafiorendi/MuonHLT.git    
 cd MuonHLT/  
-git checkout -b YOUR_BRANCH_NAME  
-git merge origin/addL1info  
+git checkout iterL3 
+#git merge origin/addL1info  
 cd ..  
 scramv1 b   
   
