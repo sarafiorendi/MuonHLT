@@ -180,6 +180,7 @@ public:
 
   bool find( const std::string & path ) {
 	for ( std::vector<std::string>::const_iterator it = triggers.begin(); it != triggers.end(); ++it ) {
+//       std::cout << *it << std::endl;
       if ( it-> compare(path) == 0) return true;
 //       if ( it->find ( path ) != std::string::npos ) return true;
 	}
@@ -213,6 +214,12 @@ public:
   std::vector <HLTMuonCand>     tkmuons;      
   std::vector <HLTMuonCand>     hltmuons;      
   std::vector <HLTMuonCand>     iterL3muons;      
+
+  std::vector <HLTMuonCand>     L3OImuons;      
+  std::vector <HLTMuonCand>     L3IOmuons;      
+  std::vector <HLTMuonCand>     L3L1muons;      
+
+
   std::vector <L2MuonCand>      L2muons;      
   std::vector <L1MuonCand>      L1muons;      
   HLTInfo                       hlt;           

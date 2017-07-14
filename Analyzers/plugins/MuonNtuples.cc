@@ -80,6 +80,11 @@ class MuonNtuples : public edm::EDAnalyzer {
                     bool isTk           
                    );
 
+  void fillHltMuonsSlim(const edm::Handle<reco::RecoChargedCandidateCollection> &,
+                        const edm::Event   &,
+                        int step
+                       );
+
   void fillL2Muons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
                     const edm::Event   &
                    );
@@ -121,6 +126,12 @@ class MuonNtuples : public edm::EDAnalyzer {
   edm::EDGetTokenT<l1t::MuonBxCollection> l1candToken_; 
   edm::InputTag tkMucandTag_;
   edm::EDGetTokenT<reco::RecoChargedCandidateCollection> tkMucandToken_; 
+  edm::InputTag iterl3OIcandTag_; 
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> iterl3OIcandToken_; 
+  edm::InputTag iterl3IOcandTag_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> iterl3IOcandToken_; 
+  edm::InputTag iterl3l1candTag_;
+  edm::EDGetTokenT<reco::RecoChargedCandidateCollection> iterl3l1candToken_; 
 
   edm::InputTag chargedDepTag_;
   edm::EDGetTokenT<reco::IsoDepositMap> chargedDepToken_;
@@ -228,6 +239,12 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
     l1candToken_            (consumes<l1t::MuonBxCollection>(l1candTag_)),
   tkMucandTag_            (cfg.getUntrackedParameter<edm::InputTag>("TkMuCandidates")),
     tkMucandToken_          (consumes<reco::RecoChargedCandidateCollection>(tkMucandTag_)),
+  iterl3OIcandTag_        (cfg.getUntrackedParameter<edm::InputTag>("iterL3OICandidates")),
+    iterl3OIcandToken_      (consumes<reco::RecoChargedCandidateCollection>(iterl3OIcandTag_)),
+  iterl3IOcandTag_        (cfg.getUntrackedParameter<edm::InputTag>("iterL3IOCandidates")),
+    iterl3IOcandToken_      (consumes<reco::RecoChargedCandidateCollection>(iterl3IOcandTag_)),
+  iterl3l1candTag_        (cfg.getUntrackedParameter<edm::InputTag>("iterL3L1Candidates")),
+    iterl3l1candToken_      (consumes<reco::RecoChargedCandidateCollection>(iterl3l1candTag_)),
 
   chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
     chargedDepToken_        (consumes<reco::IsoDepositMap>(chargedDepTag_)), 
@@ -412,12 +429,6 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     edm::LogError("") << "Trigger collection for tag muon not found !!!";
 
 
- // Handle the online muon collection and fill online muons
-  edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
-  if (event.getByToken(l3candToken_, l3cands))
-    fillHltMuons(l3cands, event,  true, false, false);//isL3, isIterL3,  isTk,  
-  else
-    edm::LogWarning("") << "Online muon collection not found !!!";
 
  // Handle the online muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> iterl3cands;
@@ -426,7 +437,38 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
   else
     edm::LogWarning("") << "Online iter L3 collection not found !!!";
 
-  // Handle the online tk muon collection and fill online muons
+ // Handle the online muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> iterl3OIcands;
+  if (event.getByToken(iterl3OIcandToken_, iterl3OIcands))
+    fillHltMuonsSlim(iterl3OIcands, event, 0);  
+  else
+    edm::LogWarning("") << "Iter L3 Step 0 collection not found !!!";
+
+ // Handle the online muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> iterl3IOcands;
+  if (event.getByToken(iterl3IOcandToken_, iterl3IOcands))
+    fillHltMuonsSlim(iterl3IOcands, event, 1);
+  else
+    edm::LogWarning("") << "Iter L3 Step 1 collection not found !!!";
+ 
+ // Handle the online muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> iterl3l1cands;
+  if (event.getByToken(iterl3l1candToken_, iterl3l1cands))
+    fillHltMuonsSlim(iterl3l1cands, event, 2);//isL3, isIterL3,  isTk,  
+  else
+    edm::LogWarning("") << "Iter L3 Step 2 collection not found !!!";
+
+
+
+
+ // Handle the online muon collection and fill online muons
+  edm::Handle<reco::RecoChargedCandidateCollection> l3cands;
+  if (event.getByToken(l3candToken_, l3cands))
+    fillHltMuons(l3cands, event,  true, false, false);//isL3, isIterL3,  isTk,  
+  else
+    edm::LogWarning("") << "Online muon collection not found !!!";
+
+//   // Handle the online tk muon collection and fill online muons
   edm::Handle<reco::RecoChargedCandidateCollection> tkMucands;
   if (event.getByToken(tkMucandToken_, tkMucands))
     fillHltMuons(tkMucands, event, false, false, true);//isL3, isIterL3,  isTk, 
@@ -517,10 +559,12 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
       std::string pathName = triggerNames.triggerName(itrig);
       if ( pathName.find ("HLT_IsoMu"  ) !=std::string::npos ||
            pathName.find ("HLT_Mu45"   ) !=std::string::npos ||
-           pathName.find ("HLT_Mu5"    ) !=std::string::npos ||
-           pathName.find ("HLT_TkMu5"  ) !=std::string::npos ||
+           pathName.find ("HLT_Mu"     ) !=std::string::npos ||
+           pathName.find ("HLT_TkMu"   ) !=std::string::npos ||
            pathName.find ("HLT_IsoTkMu") !=std::string::npos ||
            pathName.find ("HLT_Mu17"   ) !=std::string::npos ||
+           pathName.find ("HLT_L2Mu"   ) !=std::string::npos ||
+           pathName.find ("HLT_DoubleL2" ) !=std::string::npos ||
            pathName.find ("HLT_Mu8_"  ) !=std::string::npos
       ){
         if (isTag) event_.hltTag.triggers.push_back(pathName);
@@ -535,9 +579,9 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
   {
     std::string filterTag = triggerEvent->filterTag(iFilter).encode();
 
-    if ( ( filterTag.find ("sMu22"     ) !=std::string::npos ||
-           filterTag.find ("sMu"       ) !=std::string::npos
-//            filterTag.find ("DoubleMu"  ) !=std::string::npos ||
+    if ( ( filterTag.find ("sMu"     ) !=std::string::npos ||
+           filterTag.find ("SingleMu") !=std::string::npos ||
+           filterTag.find ("DoubleMu"  ) !=std::string::npos 
 //            filterTag.find ("DiMuonGlb" ) !=std::string::npos
            ) &&
            filterTag.find ("Tau"       ) ==std::string::npos   &&
@@ -746,38 +790,38 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     reco::TrackRef trkmu = candref->track();
     theL3Mu.trkpt   = trkmu -> pt();
 
-    if (event.getByToken(neutralDepToken_, neutralDepMap) ){
+    if (isIterL3 && event.getByToken(neutralDepToken_, neutralDepMap) ){
       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralDepMap).find( candref );
       theL3Mu.hcalDep    = hcal_mapi->val;
     }
     else    theL3Mu.hcalDep    = -9999;
     
-    if (event.getByToken(photonsDepToken_, photonsDepMap) ){
+    if (isIterL3 && event.getByToken(photonsDepToken_, photonsDepMap) ){
       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsDepMap).find( candref );
       theL3Mu.ecalDep    = ecal_mapi->val;
     }
     else    theL3Mu.ecalDep    = -9999;
 
-    if (event.getByToken(chargedDepToken_, trkDepMap) ){
+    if (isIterL3 && event.getByToken(chargedDepToken_, trkDepMap) ){
       reco::IsoDeposit theTkIsolation     = (*trkDepMap)[candref];
       theL3Mu.trkDep    = theTkIsolation.depositWithin(0.3);
     }
     else    theL3Mu.trkDep    = -9999;
 
-    if (event.getByToken(chargedDep2016Token_, trkDep2016Map) ){
-      reco::IsoDeposit theTkIsolation2016     = (*trkDep2016Map)[candref];
-      theL3Mu.trkDep2016    = theTkIsolation2016.depositWithin(0.3);
-    }
-    else    theL3Mu.trkDep2016    = -9999;
+//     if (event.getByToken(chargedDep2016Token_, trkDep2016Map) ){
+//       reco::IsoDeposit theTkIsolation2016     = (*trkDep2016Map)[candref];
+//       theL3Mu.trkDep2016    = theTkIsolation2016.depositWithin(0.3);
+//     }
+//     else    theL3Mu.trkDep2016    = -9999;
     
 
-    if (event.getByToken(neutralM2DepToken_, neutralM2DepMap) ){
+    if (isIterL3 && event.getByToken(neutralM2DepToken_, neutralM2DepMap) ){
       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralM2DepMap).find( candref );
       theL3Mu.hcalM2Dep    = hcal_mapi->val;
     }
     else    theL3Mu.hcalM2Dep    = -9999;
 
-    if (event.getByToken(photonsMFDepToken_, photonsMFDepMap) ){
+    if (isIterL3 &&  event.getByToken(photonsMFDepToken_, photonsMFDepMap) ){
 	  reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsMFDepMap).find( candref );
 	  theL3Mu.ecalMFDep    = ecal_mapi->val;
 	}
@@ -816,6 +860,50 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     else if  (isTk)      event_.tkmuons    .push_back(theL3Mu);
   }
 }
+
+
+// ---------------------------------------------------------------------
+void MuonNtuples::fillHltMuonsSlim(const edm::Handle<reco::RecoChargedCandidateCollection> & l3cands ,
+                                   const edm::Event                                        & event   , 
+                                   int step       
+                               )
+{
+
+  for( unsigned int il3 = 0; il3 < l3cands->size(); ++il3) 
+  {
+    HLTMuonCand theL3Mu;
+
+    reco::RecoChargedCandidateRef candref(l3cands, il3);
+    theL3Mu.pt      = candref -> pt();
+    theL3Mu.eta     = candref -> eta();
+    theL3Mu.phi     = candref -> phi();
+    theL3Mu.charge  = candref -> charge();
+    
+    theL3Mu.dz = candref -> vz();
+
+    reco::TrackRef trkmu = candref->track();
+    theL3Mu.trkpt   = trkmu -> pt();
+
+	theL3Mu.ecalDep   =  -9999 ;
+	theL3Mu.hcalDep   =  -9999 ;
+	theL3Mu.ecalMFDep =  -9999 ;
+	theL3Mu.hcalM2Dep =  -9999 ;
+	theL3Mu.hcalDep05 =  -9999 ;
+	theL3Mu.ecalDep05 =  -9999 ; 
+	theL3Mu.hcalDep1  =  -9999 ;
+	theL3Mu.ecalDep1  =  -9999 ;
+	theL3Mu.trkDep    =  -9999 ;
+
+
+    if       (step==0)      event_.L3OImuons   .push_back(theL3Mu);
+    else if  (step==1)      event_.L3IOmuons   .push_back(theL3Mu); 
+    else if  (step==2)      event_.L3L1muons   .push_back(theL3Mu);
+  }
+}
+
+
+
+
 
 // ---------------------------------------------------------------------
 void MuonNtuples::fillL1Muons(const edm::Handle<l1t::MuonBxCollection> & l1cands ,
@@ -890,6 +978,11 @@ void MuonNtuples::beginEvent()
   event_.L2muons.clear();
   event_.L1muons.clear();
   event_.tkmuons.clear();
+
+  event_.L3OImuons.clear();
+  event_.L3IOmuons.clear();
+  event_.L3L1muons.clear();
+
 
   for (unsigned int ix=0; ix<3; ++ix) {
     event_.primaryVertex[ix] = 0.;
