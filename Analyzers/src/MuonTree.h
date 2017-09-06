@@ -107,6 +107,9 @@ public:
   Float_t eta;          
   Float_t phi;          
   Int_t   charge;      
+
+  Int_t   minStations;      
+  Int_t   minHits    ;      
   
   L2MuonCand(){};
   virtual ~L2MuonCand(){};

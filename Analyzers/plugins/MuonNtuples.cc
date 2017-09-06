@@ -581,7 +581,8 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
 
     if ( ( filterTag.find ("sMu"     ) !=std::string::npos ||
            filterTag.find ("SingleMu") !=std::string::npos ||
-           filterTag.find ("DoubleMu"  ) !=std::string::npos 
+           filterTag.find ("SingleMu") !=std::string::npos ||
+           filterTag.find ("DiMuon"  ) !=std::string::npos 
 //            filterTag.find ("DiMuonGlb" ) !=std::string::npos
            ) &&
            filterTag.find ("Tau"       ) ==std::string::npos   &&
@@ -944,6 +945,11 @@ void MuonNtuples::fillL2Muons (const edm::Handle<reco::RecoChargedCandidateColle
     theL2Mu.eta     = candref -> eta();
     theL2Mu.phi     = candref -> phi();
     theL2Mu.charge  = candref -> charge();
+    
+    reco::TrackRef mu = candref->get<reco::TrackRef>();
+    theL2Mu.minStations = mu->hitPattern().muonStationsWithAnyHits();
+    theL2Mu.minHits     = mu->numberOfValidHits();
+
 
     event_.L2muons.push_back(theL2Mu);
   }
