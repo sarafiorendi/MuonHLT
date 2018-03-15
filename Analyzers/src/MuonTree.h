@@ -91,6 +91,8 @@ public:
   Float_t hcalDep1;
   
   Float_t dz;
+  Float_t dxy;
+  Float_t dxy_error;
 
   HLTMuonCand(){};
   virtual ~HLTMuonCand(){};
@@ -125,6 +127,8 @@ public:
   Float_t pt;           
   Float_t eta;          
   Float_t phi;          
+//   Float_t etaAtVtx;          
+//   Float_t phiAtVtx;          
   Int_t   charge;      
   Int_t   quality;      
   
@@ -135,6 +139,22 @@ public:
 
 };
 
+
+class HLTJetCand {
+public:
+
+  Float_t pt;           
+  Float_t eta;          
+  Float_t phi;          
+  Float_t trkpt;         // pt of the track of the hlt muon [GeV]
+  Int_t   charge;         // pt of the track of the hlt muon [GeV]
+  
+  HLTJetCand(){};
+  virtual ~HLTJetCand(){};
+
+  ClassDef(HLTJetCand,1)
+
+};
 
 
 class HLTObjCand {
@@ -225,6 +245,7 @@ public:
 
   std::vector <L2MuonCand>      L2muons;      
   std::vector <L1MuonCand>      L1muons;      
+  std::vector <HLTJetCand>      Jets;
   HLTInfo                       hlt;           
   HLTInfo                       hltTag;            
 
