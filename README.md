@@ -6,7 +6,7 @@ cmsenv
 git cms-addpkg HLTrigger/Configuration    
 git clone git@github.com:sarafiorendi/MuonHLT.git    
 cd MuonHLT/  
-git checkout iterL3   
+git checkout KeeStudies   
 cd ..  
 scramv1 b   
   
