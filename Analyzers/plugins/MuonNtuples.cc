@@ -530,37 +530,77 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
   for ( size_t i=0; i< genParticles->size(); ++i) 
   { 
     const reco::GenParticle &p = (*genParticles)[i];
-    // only save muons
-    if(fabs(p.pdgId()) != muId )     continue; 
-      
-    GenParticleCand theGen;
-    theGen.pdgId  = p.pdgId();
-    theGen.pt     = p.pt() ;
-    theGen.eta    = p.eta();
-    theGen.phi    = p.phi();
-    theGen.energy = p.energy();
-    theGen.status = p.status();
+//     if(fabs(p.pdgId()) < 500 ||  abs(p.pdgId()) > 600  )     continue; 
     
-    unsigned int n_moms = p.numberOfMothers();
-    if (n_moms == 0 ){
-      theGen.pdgMother.push_back(0);
-      theGen.pdgRealMother.push_back(0);
-    }
-    else {
-      for (unsigned int im=0; im < n_moms; ++im){
-        theGen.pdgMother.push_back(p.motherRef(im)->pdgId());
-        // if coming from a muon, go back one step ** to be improved **
-        if(n_moms == 1 && fabs(p.motherRef(0)->pdgId()) == muId){
-          for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
-            theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
+    // only save muons
+    if(fabs(p.pdgId()) == muId ){ 
+      
+      GenParticleCand theGen;
+      theGen.pdgId  = p.pdgId();
+      theGen.pt     = p.pt() ;
+      theGen.eta    = p.eta();
+      theGen.phi    = p.phi();
+      theGen.energy = p.energy();
+      theGen.status = p.status();
+    
+      unsigned int n_moms = p.numberOfMothers();
+      if (n_moms == 0 ){
+        theGen.pdgMotherId.push_back(0);
+        theGen.pdgRealMother.push_back(0);
+      }
+      else {
+        for (unsigned int im=0; im < n_moms; ++im){
+          
+          theGen.pdgMotherId .push_back(p.motherRef(im)->pdgId());
+          theGen.pdgMotherPt .push_back(p.motherRef(im)->pt());
+          theGen.pdgMotherEta.push_back(p.motherRef(im)->eta());
+          theGen.pdgMotherPhi.push_back(p.motherRef(im)->phi());
+          // if coming from a muon, go back one step ** to be improved **
+          if(n_moms == 1 && fabs(p.motherRef(0)->pdgId()) == muId){
+            for (unsigned int igm = 0; igm < p.motherRef(0)->numberOfMothers(); igm++){
+              theGen.pdgRealMother.push_back(p.motherRef(0)->motherRef(igm)->pdgId());
+            }
+          }
+          else{
+            theGen.pdgRealMother.push_back(0);
+//             theGen.pdgMotherPt .push_back(-999.);
+//             theGen.pdgMotherEta.push_back(-999.);
+//             theGen.pdgMotherPhi.push_back(-999.);
           }
         }
-        else
-          theGen.pdgRealMother.push_back(0);
       }
+
+    event_.genMuons.push_back(theGen);
     }
 
-    event_.genParticles.push_back(theGen);
+    else if(fabs(p.pdgId()) > 500 &&  abs(p.pdgId()) < 600  )     { 
+
+      GenParticleCand theGen;
+      theGen.pdgId  = p.pdgId();
+      theGen.pt     = p.pt() ;
+      theGen.eta    = p.eta();
+      theGen.phi    = p.phi();
+      theGen.energy = p.energy();
+      theGen.status = p.status();
+
+      unsigned int n_moms = p.numberOfMothers();
+      if (n_moms == 0 ){
+        theGen.pdgMotherId.push_back(0);
+        theGen.pdgRealMother.push_back(0);
+      }
+      else {
+        for (unsigned int im=0; im < n_moms; ++im){
+          
+          theGen.pdgMotherId .push_back(p.motherRef(im)->pdgId());
+          theGen.pdgMotherPt .push_back(p.motherRef(im)->pt());
+          theGen.pdgMotherEta.push_back(p.motherRef(im)->eta());
+          theGen.pdgMotherPhi.push_back(p.motherRef(im)->phi());
+        }
+      }  
+
+      event_.genBs.push_back(theGen);
+
+    }
 
   }  // end for genParticles
 }
@@ -1036,7 +1076,9 @@ void MuonNtuples::beginEvent()
   event_.hltTag.objects.clear();
   event_.hltTag.rho = -1;
 
-  event_.genParticles.clear();
+//   event_.genParticles.clear();
+  event_.genMuons.clear();
+  event_.genBs.clear();
   event_.muons.clear();
   event_.hltmuons.clear();
   event_.iterL3muons.clear();

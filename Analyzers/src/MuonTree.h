@@ -16,8 +16,11 @@ public:
   Float_t pt; 
   Float_t eta; 
   Float_t phi; 
-  std::vector<Int_t>  pdgMother; 
-  std::vector<Int_t>  pdgRealMother; 
+  std::vector<Int_t>    pdgMotherId; 
+  std::vector<Float_t>  pdgMotherPt; 
+  std::vector<Float_t>  pdgMotherEta; 
+  std::vector<Float_t>  pdgMotherPhi; 
+  std::vector<Int_t>    pdgRealMother; 
 
   GenParticleCand(){};
   virtual ~GenParticleCand(){};
@@ -232,7 +235,8 @@ public:
   Float_t bxId;
   Float_t instLumi; 
 
-  std::vector <GenParticleCand> genParticles; 
+  std::vector <GenParticleCand> genMuons; 
+  std::vector <GenParticleCand> genBs; 
   std::vector <MuonCand>        muons;         
   std::vector <HLTMuonCand>     tkmuons;      
   std::vector <HLTMuonCand>     hltmuons;      
