@@ -16,6 +16,7 @@ public:
   Float_t pt; 
   Float_t eta; 
   Float_t phi; 
+  bool isPromptDecayed; 
   std::vector<Int_t>    pdgMotherId; 
   std::vector<Float_t>  pdgMotherPt; 
   std::vector<Float_t>  pdgMotherEta; 
@@ -231,12 +232,15 @@ public:
 
   Float_t trueNI;   
   Float_t rho; 
+  Float_t qScale;
+  Float_t max_pt_hats;
   
   Float_t bxId;
   Float_t instLumi; 
 
   std::vector <GenParticleCand> genMuons; 
   std::vector <GenParticleCand> genBs; 
+//   std::vector <GenParticleCand> genParticles; 
   std::vector <MuonCand>        muons;         
   std::vector <HLTMuonCand>     tkmuons;      
   std::vector <HLTMuonCand>     hltmuons;      

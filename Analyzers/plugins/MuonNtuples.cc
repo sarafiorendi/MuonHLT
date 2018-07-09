@@ -38,6 +38,7 @@
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "HLTrigger/HLTcore/interface/HLTEventAnalyzerAOD.h"
 #include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
+#include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
 
 
 #include <map>
@@ -209,6 +210,8 @@ class MuonNtuples : public edm::EDAnalyzer {
 
   edm::InputTag genTag_;
   edm::EDGetTokenT<reco::GenParticleCollection> genToken_;
+  edm::InputTag genInfoTag_;
+  edm::EDGetTokenT<GenEventInfoProduct> genInfoToken_;
 
   edm::InputTag beamspotTag_;
   edm::EDGetTokenT<reco::BeamSpot> beamspotToken_;
@@ -326,6 +329,8 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
 
   genTag_                 (cfg.getUntrackedParameter<edm::InputTag>("genParticlesTag")),
     genToken_               (consumes<reco::GenParticleCollection>(genTag_)), 
+  genInfoTag_             (cfg.getUntrackedParameter<edm::InputTag>("genInfoTag")),
+    genInfoToken_           (consumes<GenEventInfoProduct>(genInfoTag_)), 
 
   beamspotTag_            (cfg.getParameter<edm::InputTag>("onlineBeamspot")), 
     beamspotToken_         (consumes<reco::BeamSpot>(beamspotTag_)), 
@@ -405,12 +410,25 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
       {
         if(PVI->getBunchCrossing()==0){
           event_.trueNI   = PVI->getTrueNumInteractions();
+
+		  //get the PU pt-hat max
+		  float pu_pT_hat_max = -1;
+   
+		  PileupSummaryInfo puSummary_onTime = puInfo.product()->at(0);
+		  for(const auto& pu_pT_hat : puSummary_onTime.getPU_pT_hats()) if (pu_pT_hat>pu_pT_hat_max) pu_pT_hat_max = pu_pT_hat;
+          event_.max_pt_hats = pu_pT_hat_max;
+
           continue;
         }
       }
+      
     } 
     else  
       edm::LogError("") << "PU collection not found !!!";
+    
+    edm::Handle<GenEventInfoProduct> genInfo;
+    event.getByToken(genInfoToken_, genInfo);
+    event_.qScale = genInfo->qScale();
   }
 
   
@@ -542,6 +560,7 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
       theGen.phi    = p.phi();
       theGen.energy = p.energy();
       theGen.status = p.status();
+      theGen.isPromptDecayed = p.isPromptDecayed();
     
       unsigned int n_moms = p.numberOfMothers();
       if (n_moms == 0 ){
@@ -582,6 +601,7 @@ void MuonNtuples::MonteCarloStudies(const edm::Event& event)
       theGen.phi    = p.phi();
       theGen.energy = p.energy();
       theGen.status = p.status();
+      theGen.isPromptDecayed = p.isPromptDecayed();
 
       unsigned int n_moms = p.numberOfMothers();
       if (n_moms == 0 ){
@@ -1098,11 +1118,15 @@ void MuonNtuples::beginEvent()
       event_.cov_primaryVertex[ix][iy] = 0.;
     }
   }
-  event_.nVtx       = -1;
-  event_.trueNI     = -1;
-  event_.rho        = -1;
-  event_.bxId       = -1;
-  event_.instLumi   = -1;
+  event_.nVtx        = -1;
+  event_.trueNI      = -1;
+  event_.rho         = -1;
+  event_.bxId        = -1;
+  event_.instLumi    = -1;
+  
+  event_.qScale      = -1;
+  event_.max_pt_hats = -1;
+
   
   nGoodVtx = 0; 
 }
