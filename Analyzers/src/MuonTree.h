@@ -131,8 +131,8 @@ public:
   Float_t pt;           
   Float_t eta;          
   Float_t phi;          
-//   Float_t etaAtVtx;          
-//   Float_t phiAtVtx;          
+  Float_t etaAtVtx;          
+  Float_t phiAtVtx;          
   Int_t   charge;      
   Int_t   quality;      
   
