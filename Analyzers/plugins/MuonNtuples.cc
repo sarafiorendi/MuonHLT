@@ -24,8 +24,6 @@
 #include "DataFormats/JetReco/interface/Jet.h"
 #include "DataFormats/JetReco/interface/PFJet.h"
 #include "DataFormats/PatCandidates/interface/Muon.h"
-#include "DataFormats/RecoCandidate/interface/IsoDeposit.h"
-#include "DataFormats/RecoCandidate/interface/IsoDepositFwd.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidateFwd.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidateIsolation.h"
@@ -83,10 +81,6 @@ class MuonNtuples : public edm::EDAnalyzer {
                     bool isTk           
                    );
 
-  void fillHltMuonsSlim(const edm::Handle<reco::RecoChargedCandidateCollection> &,
-                        const edm::Event   &,
-                        int step
-                       );
 
   void fillL2Muons(const edm::Handle<reco::RecoChargedCandidateCollection> &,
                     const edm::Event   &
@@ -141,66 +135,6 @@ class MuonNtuples : public edm::EDAnalyzer {
 
   edm::InputTag jetTag_;
   edm::EDGetTokenT<reco::PFJetCollection> jetToken_; 
-
-  edm::InputTag chargedDepTag_;
-  edm::EDGetTokenT<reco::IsoDepositMap> chargedDepToken_;
-  edm::InputTag chargedDep2016Tag_;
-  edm::EDGetTokenT<reco::IsoDepositMap> chargedDep2016Token_;
-
-  edm::InputTag neutralDepTag_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralDepToken_;
-  edm::InputTag photonsDepTag_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> photonsDepToken_;
-  edm::InputTag neutralDepTag05_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralDepToken05_;
-  edm::InputTag photonsDepTag05_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> photonsDepToken05_;
-  edm::InputTag neutralDepTag1_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralDepToken1_;
-  edm::InputTag photonsDepTag1_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> photonsDepToken1_;
-
-  edm::InputTag neutralM2DepTag_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> neutralM2DepToken_;
-  edm::InputTag photonsMFDepTag_;
-  edm::EDGetTokenT<reco::RecoChargedCandidateIsolationMap> photonsMFDepToken_;
-
-  
-  edm::InputTag rhoCorrectionTag_;
-  edm::EDGetTokenT<double> rhoCorrectionToken_;
-  edm::InputTag rhoCorrectionOfflineTag_;
-  edm::EDGetTokenT<double> rhoCorrectionOfflineToken_;
- 
-  edm::InputTag rhoCorrectionOnline05Tag_;
-  edm::EDGetTokenT<double> rhoCorrectionOnline05Token_;
-  edm::InputTag rhoCorrectionM2Tag_;
-  edm::EDGetTokenT<double> rhoCorrectionM2Token_;
-  edm::InputTag rhoCorrectionMFTag_;
-  edm::EDGetTokenT<double> rhoCorrectionMFToken_;
-  edm::InputTag rhoCorrectionM2MFTag_;
-  edm::EDGetTokenT<double> rhoCorrectionM2MFToken_;
-
-  edm::InputTag rhoCorrectionECALTag_;
-  edm::EDGetTokenT<double> rhoCorrectionECALToken_;
-  edm::InputTag rhoCorrectionECALMFTag_;
-  edm::EDGetTokenT<double> rhoCorrectionECALMFToken_;
-  edm::InputTag rhoCorrectionHCALTag_;
-  edm::EDGetTokenT<double> rhoCorrectionHCALToken_;
-  edm::InputTag rhoCorrectionHCALM2Tag_;
-  edm::EDGetTokenT<double> rhoCorrectionHCALM2Token_;
-  edm::InputTag rhoCorrectionECAL05Tag_;
-  edm::EDGetTokenT<double> rhoCorrectionECAL05Token_;
-  edm::InputTag rhoCorrectionHCAL05Tag_;
-  edm::EDGetTokenT<double> rhoCorrectionHCAL05Token_;
-
-  edm::InputTag offlineECalPFTag03_;
-  edm::EDGetTokenT<edm::ValueMap<float>> offlineECalPFToken03_;
-  edm::InputTag offlineHCalPFTag03_;
-  edm::EDGetTokenT<edm::ValueMap<float>> offlineHCalPFToken03_;
-  edm::InputTag offlineECalPFTag04_;
-  edm::EDGetTokenT<edm::ValueMap<float>> offlineECalPFToken04_;
-  edm::InputTag offlineHCalPFTag04_;
-  edm::EDGetTokenT<edm::ValueMap<float>> offlineHCalPFToken04_;
 
   edm::InputTag lumiScalerTag_;
   edm::EDGetTokenT<LumiScalersCollection> lumiScalerToken_;
@@ -263,65 +197,6 @@ MuonNtuples::MuonNtuples(const edm::ParameterSet& cfg):
   jetTag_        (cfg.getUntrackedParameter<edm::InputTag>("JetCandidates")),
     jetToken_      (consumes<reco::PFJetCollection>(jetTag_)),
 
-  chargedDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit")), 
-    chargedDepToken_        (consumes<reco::IsoDepositMap>(chargedDepTag_)), 
-  chargedDep2016Tag_      (cfg.getUntrackedParameter<edm::InputTag>("ChargedDeposit2016")), 
-    chargedDep2016Token_    (consumes<reco::IsoDepositMap>(chargedDep2016Tag_)), 
-
-  neutralDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("NeutralDeposit")), 
-    neutralDepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(neutralDepTag_)), 
-  photonsDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("PhotonsDeposit")), 
-    photonsDepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(photonsDepTag_)), 
-  neutralDepTag05_        (cfg.getUntrackedParameter<edm::InputTag>("NeutralDeposit05")), 
-    neutralDepToken05_      (consumes<reco::RecoChargedCandidateIsolationMap>(neutralDepTag05_)), 
-  photonsDepTag05_        (cfg.getUntrackedParameter<edm::InputTag>("PhotonsDeposit05")), 
-    photonsDepToken05_      (consumes<reco::RecoChargedCandidateIsolationMap>(photonsDepTag05_)), 
-  neutralDepTag1_         (cfg.getUntrackedParameter<edm::InputTag>("NeutralDeposit1" )), 
-    neutralDepToken1_       (consumes<reco::RecoChargedCandidateIsolationMap>(neutralDepTag1_ )), 
-  photonsDepTag1_         (cfg.getUntrackedParameter<edm::InputTag>("PhotonsDeposit1" )), 
-    photonsDepToken1_       (consumes<reco::RecoChargedCandidateIsolationMap>(photonsDepTag1_)),
-
-  neutralM2DepTag_          (cfg.getUntrackedParameter<edm::InputTag>("NeutralM2Deposit")), 
-    neutralM2DepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(neutralM2DepTag_)), 
-  photonsMFDepTag_          (cfg.getUntrackedParameter<edm::InputTag>("PhotonsMFDeposit")), 
-    photonsMFDepToken_        (consumes<reco::RecoChargedCandidateIsolationMap>(photonsMFDepTag_)), 
-
-  rhoCorrectionTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOnline")), 
-    rhoCorrectionToken_     (consumes<double>(rhoCorrectionTag_)), 
-  rhoCorrectionOfflineTag_(cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOffline")), 
-    rhoCorrectionOfflineToken_(consumes<double>(rhoCorrectionOfflineTag_)), 
-
-  rhoCorrectionOnline05Tag_   (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionOnline05")),
-    rhoCorrectionOnline05Token_ (consumes<double>(rhoCorrectionOnline05Tag_)),
-  rhoCorrectionM2Tag_         (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionM2")),
-    rhoCorrectionM2Token_       (consumes<double>(rhoCorrectionM2Tag_)),
-  rhoCorrectionMFTag_         (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionMF")),
-    rhoCorrectionMFToken_       (consumes<double>(rhoCorrectionMFTag_)),
-  rhoCorrectionM2MFTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionM2MF")),
-    rhoCorrectionM2MFToken_     (consumes<double>(rhoCorrectionM2MFTag_)),
-
-  rhoCorrectionECALTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECAL")),
-    rhoCorrectionECALToken_     (consumes<double>(rhoCorrectionECALTag_)),
-  rhoCorrectionECALMFTag_     (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECALMF")),
-    rhoCorrectionECALMFToken_   (consumes<double>(rhoCorrectionECALMFTag_)),
-  rhoCorrectionHCALTag_       (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCAL")),
-    rhoCorrectionHCALToken_     (consumes<double>(rhoCorrectionHCALTag_)),
-  rhoCorrectionHCALM2Tag_     (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCALM2")),
-    rhoCorrectionHCALM2Token_   (consumes<double>(rhoCorrectionHCALM2Tag_)),
-  rhoCorrectionECAL05Tag_     (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionECAL05")),
-    rhoCorrectionECAL05Token_   (consumes<double>(rhoCorrectionECAL05Tag_)),
-  rhoCorrectionHCAL05Tag_     (cfg.getUntrackedParameter<edm::InputTag>("RhoCorrectionHCAL05")),
-    rhoCorrectionHCAL05Token_   (consumes<double>(rhoCorrectionHCAL05Tag_)),
-  
-  offlineECalPFTag03_     (cfg.getUntrackedParameter<edm::InputTag>("offlineECalPFIso03")),
-    offlineECalPFToken03_   (consumes<edm::ValueMap<float>>(offlineECalPFTag03_)), 
-  offlineHCalPFTag03_     (cfg.getUntrackedParameter<edm::InputTag>("offlineHCalPFIso03")),
-    offlineHCalPFToken03_   (consumes<edm::ValueMap<float>>(offlineHCalPFTag03_)), 
-  offlineECalPFTag04_     (cfg.getUntrackedParameter<edm::InputTag>("offlineECalPFIso04")),
-    offlineECalPFToken04_   (consumes<edm::ValueMap<float>>(offlineECalPFTag04_)), 
-  offlineHCalPFTag04_     (cfg.getUntrackedParameter<edm::InputTag>("offlineHCalPFIso04")),
-    offlineHCalPFToken04_   (consumes<edm::ValueMap<float>>(offlineHCalPFTag04_)), 
-
   lumiScalerTag_          (cfg.getUntrackedParameter<edm::InputTag>("lumiScalerTag")),
     lumiScalerToken_        (consumes<LumiScalersCollection>(lumiScalerTag_)), 
   puTag_                  (cfg.getUntrackedParameter<edm::InputTag>("puInfoTag")),
@@ -374,11 +249,6 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     event_.nVtx = nGoodVtx;
     const reco::Vertex           & pv      = vertices->at(0);
 
-
-    // Fill offline rho info
-    edm::Handle <double>  rhoCollectionOffline;
-    event.getByToken(rhoCorrectionOfflineToken_, rhoCollectionOffline);
-    if (rhoCollectionOffline.isValid()) event_.rho     = *(rhoCollectionOffline.product());
 
   // Handle the offline muon collection and fill offline muons
     edm::Handle<std::vector<reco::Muon> > muons;
@@ -471,29 +341,6 @@ void MuonNtuples::analyze (const edm::Event &event, const edm::EventSetup &event
     fillHltMuons(iterl3cands, event, false, true, false);//isL3, isIterL3,  isTk,  
   else
     edm::LogWarning("") << "Online iter L3 collection not found !!!";
-
- // Handle the online muon collection and fill online muons
-//   edm::Handle<reco::RecoChargedCandidateCollection> iterl3OIcands;
-//   if (event.getByToken(iterl3OIcandToken_, iterl3OIcands))
-//     fillHltMuonsSlim(iterl3OIcands, event, 0);  
-//   else
-//     edm::LogWarning("") << "Iter L3 Step 0 collection not found !!!";
-// 
-//  // Handle the online muon collection and fill online muons
-//   edm::Handle<reco::RecoChargedCandidateCollection> iterl3IOcands;
-//   if (event.getByToken(iterl3IOcandToken_, iterl3IOcands))
-//     fillHltMuonsSlim(iterl3IOcands, event, 1);
-//   else
-//     edm::LogWarning("") << "Iter L3 Step 1 collection not found !!!";
-//  
-//  // Handle the online muon collection and fill online muons
-//   edm::Handle<reco::RecoChargedCandidateCollection> iterl3l1cands;
-//   if (event.getByToken(iterl3l1candToken_, iterl3l1cands))
-//     fillHltMuonsSlim(iterl3l1cands, event, 2);//isL3, isIterL3,  isTk,  
-//   else
-//     edm::LogWarning("") << "Iter L3 Step 2 collection not found !!!";
-
-
 
  // Handle the online jet collection and fill online muons
   edm::Handle<reco::PFJetCollection> jetcands;
@@ -700,62 +547,6 @@ void MuonNtuples::fillHlt(const edm::Handle<edm::TriggerResults>   & triggerResu
       }
     }         
   }
-  
-  // fill hlt rho information
-  if (!isTag){
-    edm::Handle <double>  hltRhoCollection;
-    if (event.getByToken(rhoCorrectionToken_, hltRhoCollection) && hltRhoCollection.isValid()){
-       event_.hlt   .rho = *(hltRhoCollection.product());
-    } 
-
-    edm::Handle <double>  hltRhoCollection05;
-    if (event.getByToken(rhoCorrectionOnline05Token_, hltRhoCollection05) && hltRhoCollection05.isValid()){
-      event_.hlt   .rho05 = *(hltRhoCollection05.product());
-    }
-
-    edm::Handle <double>  hltRhoCollectionM2;
-    if (event.getByToken(rhoCorrectionM2Token_, hltRhoCollectionM2) && hltRhoCollectionM2.isValid()){
-       event_.hlt   .rhoM2 = *(hltRhoCollectionM2.product());
-    } 
-    edm::Handle <double>  hltRhoCollectionMF;
-    if (event.getByToken(rhoCorrectionMFToken_, hltRhoCollectionMF) && hltRhoCollectionMF.isValid()){
-       event_.hlt   .rhoMF = *(hltRhoCollectionMF.product());
-    } 
-    edm::Handle <double>  hltRhoCollectionM2MF;
-    if (event.getByToken(rhoCorrectionM2MFToken_, hltRhoCollectionM2MF) && hltRhoCollectionM2MF.isValid()){
-       event_.hlt   .rhoM2MF = *(hltRhoCollectionM2MF.product());
-    } 
-  
-    // rho ecal
-    edm::Handle <double>  hltRhoECALCollection;
-    if (event.getByToken(rhoCorrectionECALToken_, hltRhoECALCollection) && hltRhoECALCollection.isValid()){
-      event_.hlt   .rho_ecal = *(hltRhoECALCollection.product());
-    }
-    edm::Handle <double>  hltRhoECALMFCollection;
-    if (event.getByToken(rhoCorrectionECALMFToken_, hltRhoECALMFCollection) && hltRhoECALMFCollection.isValid()){
-      event_.hlt   .rho_ecalMF = *(hltRhoECALMFCollection.product());
-    }
-    // rho hcal
-    edm::Handle <double>  hltRhoHCALCollection;
-    if (event.getByToken(rhoCorrectionHCALToken_, hltRhoHCALCollection) && hltRhoHCALCollection.isValid()){
-      event_.hlt   .rho_hcal = *(hltRhoHCALCollection.product());
-    }
-    edm::Handle <double>  hltRhoHCALM2Collection;
-    if (event.getByToken(rhoCorrectionHCALM2Token_, hltRhoHCALM2Collection) && hltRhoHCALM2Collection.isValid()){
-      event_.hlt   .rho_hcalM2 = *(hltRhoHCALM2Collection.product());
-    }
-  
-    // rho ecal ( eta up to 5.0 )
-    edm::Handle <double>  hltRhoECAL05Collection;
-    if (event.getByToken(rhoCorrectionECAL05Token_, hltRhoECAL05Collection) && hltRhoECAL05Collection.isValid()){
-      event_.hlt   .rho_ecal05 = *(hltRhoECAL05Collection.product());
-    }
-    // rho hcal ( eta up to 5.0 )
-    edm::Handle <double>  hltRhoHCAL05Collection;
-    if (event.getByToken(rhoCorrectionHCAL05Token_, hltRhoHCAL05Collection) && hltRhoHCAL05Collection.isValid()){
-      event_.hlt   .rho_hcal05 = *(hltRhoHCAL05Collection.product());
-    }
-  }
 }
 
 
@@ -786,53 +577,6 @@ void MuonNtuples::fillMuons(const edm::Handle<reco::MuonCollection>       & muon
     muon::isMediumMuon( (*mu1)     ) ? theMu.isMedium = 1 : theMu.isMedium = 0;
     muon::isSoftMuon  ( (*mu1), pv ) ? theMu.isSoft   = 1 : theMu.isSoft   = 0;
     
-    theMu.chargedDep_dR03 = mu1->pfIsolationR03().sumChargedHadronPt ;
-    theMu.neutralDep_dR03 = mu1->pfIsolationR03().sumNeutralHadronEt ;
-    theMu.photonDep_dR03  = mu1->pfIsolationR03().sumPhotonEt        ;
-    theMu.puPt_dR03       = mu1->pfIsolationR03().sumPUPt            ;
-
-    theMu.chargedDep_dR04 = mu1->pfIsolationR04().sumChargedHadronPt ;
-    theMu.neutralDep_dR04 = mu1->pfIsolationR04().sumNeutralHadronEt ;
-    theMu.photonDep_dR04  = mu1->pfIsolationR04().sumPhotonEt        ;
-    theMu.puPt_dR04       = mu1->pfIsolationR04().sumPUPt            ;
-
-
-    // now fill PF clusters
-    reco::MuonRef nmuonRef = reco::MuonRef(muons, n_mu-1);
-    
-    edm::Handle< edm::ValueMap<float> > muECalIsoMap03;
-    edm::Handle< edm::ValueMap<float> > muHCalIsoMap03;
-    if (event.getByToken(offlineECalPFToken03_, muECalIsoMap03) &&
-        event.getByToken(offlineHCalPFToken03_, muHCalIsoMap03))
-    { 
-      const edm::ValueMap<float> muECalIso03 = *(muECalIsoMap03);
-      const edm::ValueMap<float> muHCalIso03 = *(muHCalIsoMap03);
-      theMu.ecalPFCluster_dR03 = muECalIso03[nmuonRef];
-      theMu.hcalPFCluster_dR03 = muHCalIso03[nmuonRef];
-    }
-    else {
-//       edm::LogWarning("") << "Offline PF cluster in dR 03 collection not found !!!";
-      theMu.ecalPFCluster_dR03 = -9999 ;
-      theMu.hcalPFCluster_dR03 = -9999 ;
-    }
-
-    edm::Handle< edm::ValueMap<float> > muECalIsoMap04;
-    edm::Handle< edm::ValueMap<float> > muHCalIsoMap04;
-    if (event.getByToken(offlineECalPFToken04_, muECalIsoMap04) &&
-        event.getByToken(offlineHCalPFToken04_, muHCalIsoMap04) 
-    ){ 
-      const edm::ValueMap<float> muECalIso04 = *(muECalIsoMap04);
-      const edm::ValueMap<float> muHCalIso04 = *(muHCalIsoMap04);
-      theMu.ecalPFCluster_dR04 = muECalIso04[nmuonRef];
-      theMu.hcalPFCluster_dR04 = muHCalIso04[nmuonRef];
-    }
-    else {
-//       edm::LogWarning("") << "Offline PF cluster in dR 04 collection not found !!!";
-      theMu.ecalPFCluster_dR04 = -9999 ;
-      theMu.hcalPFCluster_dR04 = -9999 ;
-    }
-
-
     event_.muons.push_back(theMu);
   }
 }
@@ -848,19 +592,6 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
                                bool isTk           
                                )
 {
-
-  edm::Handle<reco::IsoDepositMap> trkDepMap;
-  edm::Handle<reco::IsoDepositMap> trkDep2016Map;
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap;
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap;
-
-//   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap05;
-//   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap05;
-//   edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralDepMap1 ;
-//   edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsDepMap1 ;
-
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> neutralM2DepMap;
-  edm::Handle<reco::RecoChargedCandidateIsolationMap> photonsMFDepMap;
 
   edm::Handle<reco::BeamSpot>                   theBeamSpot    ;
   event.getByToken(beamspotToken_,              theBeamSpot)   ;
@@ -883,119 +614,11 @@ void MuonNtuples::fillHltMuons(const edm::Handle<reco::RecoChargedCandidateColle
     theL3Mu.dxy       = trkmu -> dxy(bs.position());
     theL3Mu.dxy_error = trkmu -> dxyError();
 
-    if (isIterL3 && event.getByToken(neutralDepToken_, neutralDepMap) ){
-      reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralDepMap).find( candref );
-      theL3Mu.hcalDep    = hcal_mapi->val;
-    }
-    else    theL3Mu.hcalDep    = -9999;
-    
-    if (isIterL3 && event.getByToken(photonsDepToken_, photonsDepMap) ){
-      reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsDepMap).find( candref );
-      theL3Mu.ecalDep    = ecal_mapi->val;
-    }
-    else    theL3Mu.ecalDep    = -9999;
-
-    if (isIterL3 && event.getByToken(chargedDepToken_, trkDepMap) ){
-      reco::IsoDeposit theTkIsolation     = (*trkDepMap)[candref];
-      theL3Mu.trkDep    = theTkIsolation.depositWithin(0.3);
-    }
-    else    theL3Mu.trkDep    = -9999;
-
-//     if (event.getByToken(chargedDep2016Token_, trkDep2016Map) ){
-//       reco::IsoDeposit theTkIsolation2016     = (*trkDep2016Map)[candref];
-//       theL3Mu.trkDep2016    = theTkIsolation2016.depositWithin(0.3);
-//     }
-//     else    theL3Mu.trkDep2016    = -9999;
-    
-
-    if (isIterL3 && event.getByToken(neutralM2DepToken_, neutralM2DepMap) ){
-      reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi = (*neutralM2DepMap).find( candref );
-      theL3Mu.hcalM2Dep    = hcal_mapi->val;
-    }
-    else    theL3Mu.hcalM2Dep    = -9999;
-
-    if (isIterL3 &&  event.getByToken(photonsMFDepToken_, photonsMFDepMap) ){
-	  reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi = (*photonsMFDepMap).find( candref );
-	  theL3Mu.ecalMFDep    = ecal_mapi->val;
-	}
-	else    theL3Mu.ecalMFDep    = -9999;
-
-
-    // fill deposits with veto cones
-//     if (event.getByToken(neutralDepToken05_, neutralDepMap05) &&
-//         event.getByToken(photonsDepToken05_, photonsDepMap05) &&
-//         event.getByToken(neutralDepToken1_,  neutralDepMap1 ) &&
-//         event.getByToken(photonsDepToken1_,  photonsDepMap1 ) &&
-//         isL3  
-//         ){
-//         
-//       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi05 = (*neutralDepMap05).find( candref );
-//       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi05 = (*photonsDepMap05).find( candref );
-//       reco::RecoChargedCandidateIsolationMap::const_iterator hcal_mapi1  = (*neutralDepMap1 ).find( candref );
-//       reco::RecoChargedCandidateIsolationMap::const_iterator ecal_mapi1  = (*photonsDepMap1 ).find( candref );
-// 
-//       theL3Mu.hcalDep05 = hcal_mapi05->val;
-//       theL3Mu.ecalDep05 = ecal_mapi05->val; 
-//       theL3Mu.hcalDep1  = hcal_mapi1 ->val;
-//       theL3Mu.ecalDep1  = ecal_mapi1 ->val; 
-//     }
-//     else {
-// //       edm::LogWarning("") << "Online PF cluster collection not found !!!";
-	theL3Mu.hcalDep05 =  -9999 ;
-	theL3Mu.ecalDep05 =  -9999 ; 
-	theL3Mu.hcalDep1  =  -9999 ;
-	theL3Mu.ecalDep1  =  -9999 ;
-//     }
-
-
     if       (isL3)      event_.hltmuons   .push_back(theL3Mu);
     else if  (isIterL3)  event_.iterL3muons.push_back(theL3Mu); 
     else if  (isTk)      event_.tkmuons    .push_back(theL3Mu);
   }
 }
-
-
-// ---------------------------------------------------------------------
-void MuonNtuples::fillHltMuonsSlim(const edm::Handle<reco::RecoChargedCandidateCollection> & l3cands ,
-                                   const edm::Event                                        & event   , 
-                                   int step       
-                               )
-{
-
-  for( unsigned int il3 = 0; il3 < l3cands->size(); ++il3) 
-  {
-    HLTMuonCand theL3Mu;
-
-    reco::RecoChargedCandidateRef candref(l3cands, il3);
-    theL3Mu.pt      = candref -> pt();
-    theL3Mu.eta     = candref -> eta();
-    theL3Mu.phi     = candref -> phi();
-    theL3Mu.charge  = candref -> charge();
-    
-    theL3Mu.dz = candref -> vz();
-
-    reco::TrackRef trkmu = candref->track();
-    theL3Mu.trkpt   = trkmu -> pt();
-
-	theL3Mu.ecalDep   =  -9999 ;
-	theL3Mu.hcalDep   =  -9999 ;
-	theL3Mu.ecalMFDep =  -9999 ;
-	theL3Mu.hcalM2Dep =  -9999 ;
-	theL3Mu.hcalDep05 =  -9999 ;
-	theL3Mu.ecalDep05 =  -9999 ; 
-	theL3Mu.hcalDep1  =  -9999 ;
-	theL3Mu.ecalDep1  =  -9999 ;
-	theL3Mu.trkDep    =  -9999 ;
-
-
-    if       (step==0)      event_.L3OImuons   .push_back(theL3Mu);
-    else if  (step==1)      event_.L3IOmuons   .push_back(theL3Mu); 
-    else if  (step==2)      event_.L3L1muons   .push_back(theL3Mu);
-  }
-}
-
-
-
 
 
 // ---------------------------------------------------------------------
@@ -1080,21 +703,9 @@ void MuonNtuples::beginEvent()
 
   event_.hlt.triggers.clear();
   event_.hlt.objects.clear();
-  event_.hlt.rho        = -1;
-  event_.hlt.rho05      = -1;
-  event_.hlt.rhoM2      = -1;
-  event_.hlt.rhoMF      = -1;
-  event_.hlt.rhoM2MF    = -1;
-  event_.hlt.rho_ecal   = -1;
-  event_.hlt.rho_hcal   = -1;
-  event_.hlt.rho_ecalMF = -1;
-  event_.hlt.rho_hcalM2 = -1;
-  event_.hlt.rho_ecal05 = -1;
-  event_.hlt.rho_hcal05 = -1;  
   
   event_.hltTag.triggers.clear();
   event_.hltTag.objects.clear();
-  event_.hltTag.rho = -1;
 
 //   event_.genParticles.clear();
   event_.genMuons.clear();
@@ -1120,7 +731,6 @@ void MuonNtuples::beginEvent()
   }
   event_.nVtx        = -1;
   event_.trueNI      = -1;
-  event_.rho         = -1;
   event_.bxId        = -1;
   event_.instLumi    = -1;
   

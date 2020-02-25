@@ -48,24 +48,6 @@ public:
   Int_t   isTight;
   Int_t   isSoft;
   
-  Float_t chargedDep_dR03;
-  Float_t neutralDep_dR03;
-  Float_t photonDep_dR03;
-  Float_t puPt_dR03;
-
-  Float_t chargedDep_dR04;
-  Float_t neutralDep_dR04;
-  Float_t photonDep_dR04;
-  Float_t puPt_dR04;
-
-  Float_t ecalPFCluster_dR03;
-  Float_t hcalPFCluster_dR03;
-  Float_t trkDep_dR03;
-
-  Float_t ecalPFCluster_dR04;
-  Float_t hcalPFCluster_dR04;
-  Float_t trkDep_dR04;
-
   MuonCand(){};
   virtual ~MuonCand(){};
 
@@ -81,18 +63,6 @@ public:
   Float_t phi;          
   Float_t trkpt;         // pt of the track of the hlt muon [GeV]
   Int_t   charge;         // pt of the track of the hlt muon [GeV]
-  
-  Float_t ecalDep;
-  Float_t ecalMFDep;
-  Float_t hcalDep;
-  Float_t hcalM2Dep;
-  Float_t trkDep2016;
-  Float_t trkDep;
-
-  Float_t ecalDep05;
-  Float_t hcalDep05;
-  Float_t ecalDep1;
-  Float_t hcalDep1;
   
   Float_t dz;
   Float_t dxy;
@@ -184,17 +154,6 @@ class HLTInfo {
 public:
   std::vector<std::string>  triggers;  
   std::vector<HLTObjCand>   objects;   
-  double                    rho;     // ecal+hcal(m3)
-  double                    rho05;
-  double                    rhoM2;   // ecal+hcal(m2)
-  double                    rhoMF;   // ecal(mf full)+hcal
-  double                    rhoM2MF; // ecal(mf full)+hcal(m2)
-  double                    rho_ecal;
-  double                    rho_ecalMF;
-  double                    rho_hcal;
-  double                    rho_hcalM2;
-  double                    rho_ecal05;
-  double                    rho_hcal05;
 
 
   HLTInfo(){};
