@@ -28,7 +28,7 @@ cmsRun customize_hlt_purity.py
 where customize_hlt_purity.py is something similar to this gist:
 https://gist.github.com/sarafiorendi/6b6b6f6702265eb94bb2b0e4f80c014d
 
-In general, instructions on how to re-run the HLT can be found on [this twiki](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGlobalHLT).
+In general, instructions on how to re-run the HLT or retrieve your favorite HLT path can be found on [this twiki](https://twiki.cern.ch/twiki/bin/view/CMSPublic/SWGuideGlobalHLT).
 
 **How to analyze the ntuples**
 
